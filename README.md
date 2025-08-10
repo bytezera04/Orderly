@@ -23,7 +23,7 @@ This portfolio project demonstrates a rich user experience with product manageme
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Blazor WebAssembly** (.NET 8) — SPA with client-side C#
+- **Blazor WebAssembly** (.NET 8) — SPA with client-side C# and JavaScript
 - **Bootstrap 5** — Responsive, mobile-friendly UI design
 - **SignalR Client** — Real-time instant updates so the user never has to refresh their browser
 
@@ -44,25 +44,29 @@ This portfolio project demonstrates a rich user experience with product manageme
 ## 🖼️ Screenshots
 
 ### Dashboard Analytics Overview  
-Get a snapshot of your marketplace’s health with real-time analytics and key performance indicators displayed clearly for quick decision-making.  
+Get a snapshot of your marketplace’s health with real-time analytics and key performance indicators displayed clearly for quick decision-making.
+
 ![Dashboard Overview](docs/dashboard_showcases/analytics.png)
 
 ---
 
 ### Products Management  
-Easily create, edit, and organize your product listings with a clean and intuitive interface built for efficiency.  
+Easily create, edit, and organize your product listings with a clean and intuitive interface built for efficiency.
+
 ![Dashboard Products](docs/dashboard_showcases/product_management.png)
 
 ---
 
 ### Received Orders  
-Track and manage incoming orders seamlessly, with detailed order info to keep your marketplace running smoothly.  
+Track and manage incoming orders seamlessly, with detailed order info to keep your marketplace running smoothly.
+
 ![Dashboard Orders](docs/dashboard_showcases/order_management.png)
 
 ---
 
 ### Real-Time Chat  
-Engage in instant communication with other users via the integrated SignalR-powered chat system (disabled in public demo).  
+Engage in instant communication with other users via the integrated SignalR-powered chat system.
+
 ![Dashboard Chat](docs/dashboard_showcases/chats.png)
 
 ---
