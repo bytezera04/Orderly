@@ -35,8 +35,43 @@
         flex-direction: column;
     }
 
+    .skeleton {
+        background-image: linear-gradient( 90deg, rgba(31, 31, 31, 0.8) 25%, rgba(55, 55, 55, 0.6) 37%, rgba(31, 31, 31, 0.8) 63%);
+        background-size: 400% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+        border-radius: 0.5rem;
+    }
+
+    .skeleton-list-item {
+        height: 75px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-color: var(--nav-bg) !important;
+        border: 1px solid var(--border);
+    }
+
+    .skeleton-chart {
+        width: 100%;
+        height: 100%;
+        border-radius: 0.75rem;
+        background-image: linear-gradient( 90deg, rgba(31, 31, 31, 0.8) 25%, rgba(55, 55, 55, 0.6) 37%, rgba(31, 31, 31, 0.8) 63% );
+        background-size: 400% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
     .dashboard-card {
-        max-width: 700px;
+        width: 625px;
+        height: 475px;
         margin: 0;
         padding: 0;
         background-color: var(--nav-bg);
@@ -85,6 +120,7 @@
     }
 
     .dashboard-list-item {
+        height: 75px;
         background-color: transparent;
         border-color: var(--border);
         display: flex;
@@ -124,6 +160,11 @@
         max-width: 140px;
     }
 
+    .dashboard-chart {
+        width: 100%;
+        height: 300px;
+    }
+
     .dashboard-date-range {
         background-color: var(--card-bg);
         color: var(--fg);
@@ -151,13 +192,11 @@
         box-shadow: 0 0 0 0.15rem rgba(var(--primary-rgb), 0.25);
     }
 
-    /* Match dropdown menu to theme */
     .dashboard-date-range option {
         background-color: var(--nav-bg);
         color: var(--fg);
     }
 
-    /* For browsers that use the OS dropdown, we can force dark mode look on WebKit */
     @@supports (-webkit-appearance: none) {
         .dashboard-date-range option:checked,
         .dashboard-date-range option:hover {
@@ -165,16 +204,31 @@
             color: var(--fg);
         }
     }
+
+    @@media (max-width: 700px) {
+        .dashboard-card {
+            width: 100%;
+            max-width: 650px;
+            height: auto;
+        }
+    }
 </style>
 
-<div class="overview-wrapper">
-    <div class="overview-container m-5 row g-2">
-        <!-- Cards -->
+<div class="overview-wrapper mt-5 mb-5">
+    <div class="overview-container row g-2 d-flex justify-center align-items-center">
+        @*
+            Cards
+        *@
 
         <div class="row g-4">
-            <!-- Best Selling Products -->
-            <div class="col-12 col-md-6">
-                <div class="dashboard-card h-100">
+            @*
+                Best Selling Products
+            *@
+
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <div class="dashboard-card">
+                    <!-- Header -->
+
                     <div class="dashboard-card-header">
                         <h5 class="mb-0">Best Selling Products</h5>
                         <span class="badge">
@@ -182,14 +236,33 @@
                         </span>
                     </div>
 
-                    @if (Products.Any())
+                    <!-- Products -->
+
+                    @if (LoadingProducts)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @for (int i = 0; i < PRODUCT_PREVIEW_COUNT; i++)
+                            {
+                                <li class="list-group-item skeleton-list-item flex-column align-items-start">
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span class="skeleton" style="width: 120px; height: 16px;"></span>
+                                        <span class="skeleton" style="width: 40px; height: 16px;"></span>
+                                    </div>
+                                    <div class="skeleton mt-2" style="width: 180px; height: 12px;"></div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (!BestSellingProducts.Any())
+                    {
+                        <div class="p-3 text-muted">No products available.</div>
+                    }
+                    else
                     {
                         <ul class="list-group list-group-flush">
                             @foreach (ProductDto product in BestSellingProducts)
                             {
-                                <li class="list-group-item dashboard-list-item flex-column align-items-start"
-                                    @onclick="() => OpenProductViewModal(product)">
-
+                                <li class="list-group-item dashboard-list-item flex-column align-items-start" @onclick="() => OpenProductViewModal(product)">
                                     <div class="w-100 d-flex justify-content-between">
                                         <span>@product.Name</span>
                                         <span class="text-muted">@product.Sales sold</span>
@@ -201,37 +274,51 @@
                             }
                         </ul>
                     }
-                    else
-                    {
-                        <div class="p-3 text-muted">No products available</div>
-                    }
+
+                    <!-- Footer -->
 
                     <div class="dashboard-card-footer">
-                        <NavLink href="/dashboard/products"
-                                 class="nav-link btn btn-sm">
+                        <NavLink href="/dashboard/products" class="nav-link btn btn-sm">
                             View All
                         </NavLink>
                     </div>
                 </div>
             </div>
 
-            <!-- Sales Over Time Chart Card -->
-            <div class="col-12 col-md-6">
-                <div class="dashboard-card h-100 d-flex flex-column">
+            @*
+                Sales Over Time Chart
+            *@
+
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <div class="dashboard-card">
                     <!-- Header -->
+
                     <div class="dashboard-card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Sales Over Time</h5>
-                        <span class="badge">@ReceivedOrders.Count</span>
+
+                        <span class="badge">@ReceivedOrders.Count)</span>
                     </div>
 
                     <!-- Body -->
-                    <div class="flex-grow-1 p-3">
-                        <div id="salesChart" style="width: 100%; height: 300px;"></div>
-                    </div>
+
+                    @if (LoadingOrders)
+                    {
+                        <div class="flex-grow-1 p-3">
+                            <div class="skeleton-chart"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex-grow-1 p-3">
+                            <div id="salesChart" class="dashboard-chart"></div>
+                        </div>
+                    }
 
                     <!-- Footer -->
+
                     <div class="dashboard-card-footer d-flex justify-content-between align-items-center">
-                        <!-- Filter label + select -->
+                        <!-- Date Range -->
+
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-calendar-range" style="color: var(--fg);"></i>
                             <label for="dateRangeSelect" class="mb-0" style="color: var(--fg); font-size: 0.85rem;">
@@ -247,7 +334,8 @@
                             </select>
                         </div>
 
-                        <!-- Total revenue -->
+                        <!-- Total Revenue -->
+
                         <div class="fw-bold" style="color: var(--fg);">
                             Total Revenue: @TotalRevenue.ToString("C")
                         </div>
@@ -255,18 +343,43 @@
                 </div>
             </div>
 
+            @*
+                Most Recent Received Orders
+            *@
 
-            <!-- Received Orders -->
-            <div class="col-12 col-md-6">
-                <div class="dashboard-card h-100">
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <div class="dashboard-card">
+                    <!-- Header -->
+
                     <div class="dashboard-card-header">
                         <h5 class="mb-0">Received Orders</h5>
                         <span class="badge">
-                            @ReceivedOrders.Count
+                            @MostRecentReceivedOrders.Count
                         </span>
                     </div>
 
-                    @if (ReceivedOrders.Any())
+                    <!-- Received Orders -->
+
+                    @if (LoadingOrders)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @for (int i = 0; i < ORDER_PREVIEW_COUNT; i++)
+                            {
+                                <li class="list-group-item skeleton-list-item flex-column align-items-start">
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span class="skeleton" style="width: 120px; height: 16px;"></span>
+                                        <span class="skeleton" style="width: 40px; height: 16px;"></span>
+                                    </div>
+                                    <div class="skeleton mt-2" style="width: 180px; height: 12px;"></div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (!MostRecentReceivedOrders.Any())
+                    {
+                        <div class="p-3 text-muted">No products available.</div>
+                    }
+                    else
                     {
                         <ul class="list-group list-group-flush">
                             @foreach (OrderDto order in MostRecentReceivedOrders)
@@ -285,10 +398,8 @@
                             }
                         </ul>
                     }
-                    else
-                    {
-                        <div class="p-3 text-muted">No recent orders</div>
-                    }
+
+                    <!-- Footer -->
 
                     <div class="dashboard-card-footer">
                         <NavLink href="/dashboard/orders/recieved"
@@ -299,16 +410,41 @@
                 </div>
             </div>
 
-            <!-- Top Customers -->
+            @*
+                Top Customers
+            *@
 
-            <div class="col-12 col-md-6">
-                <div class="dashboard-card h-100">
+            <div class="col-12 col-md-6 d-flex justify-content-center">
+                <div class="dashboard-card">
+                    <!-- Header -->
+
                     <div class="dashboard-card-header">
                         <h5 class="mb-0">Top Customers</h5>
                         <span class="badge">@TopCustomers.Count</span>
                     </div>
 
-                    @if (TopCustomers.Any())
+                    <!-- Customers -->
+
+                    @if (LoadingOrders)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @for (int i = 0; i < TOP_CUSTOMERS_PREVIEW_COUNT; i++)
+                            {
+                                <li class="list-group-item skeleton-list-item flex-column align-items-start">
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span class="skeleton" style="width: 120px; height: 16px;"></span>
+                                        <span class="skeleton" style="width: 40px; height: 16px;"></span>
+                                    </div>
+                                    <div class="skeleton mt-2" style="width: 180px; height: 12px;"></div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (!TopCustomers.Any())
+                    {
+                        <div class="p-3 text-muted">No customer data available.</div>
+                    }
+                    else
                     {
                         <ul class="list-group list-group-flush">
                             @foreach (var customer in TopCustomers)
@@ -325,10 +461,8 @@
                             }
                         </ul>
                     }
-                    else
-                    {
-                        <div class="p-3 text-muted">No customer data available</div>
-                    }
+
+                    <!-- Footer -->
 
                     <div class="dashboard-card-footer">
                         <NavLink href="/dashboard/orders/received"
@@ -356,6 +490,8 @@
 
 <script>
     window.renderSalesChart = function (salesData, xMin, xMax, theme) {
+        // Sales chart configuration setup
+
         var isDark = theme === 'dark';
 
         var options = {
@@ -385,17 +521,17 @@
                 style: {
                     fontSize: '14px',
                     fontFamily: 'Arial, sans-serif',
-                    color: 'var(--fg)',          // Text color from your theme
+                    color: 'var(--fg)',
                 },
-                theme: 'dark', // keep it for basic dark mode behavior, but we override colors below
+                theme: 'dark',
                 onDatasetHover: {
                     highlightDataSeries: true,
                 },
                 marker: {
                     show: true,
                 },
-                background: 'var(--nav-bg)',     // Tooltip background color
-                borderColor: 'var(--primary)',   // Tooltip border color
+                background: 'var(--nav-bg)',
+                borderColor: 'var(--primary)',
                 borderWidth: 1,
                 shadow: {
                     enabled: true,
@@ -427,9 +563,6 @@
 </script>
 
 @code {
-    private HubConnection? _ProductHubConnection;
-    private HubConnection? _OrderHubConnection;
-
     private UserDto? CurrentUser;
 
     private List<ProductDto> Products = new();
@@ -437,28 +570,8 @@
     private List<OrderDto> PlacedOrders = new();
     private List<OrderDto> ReceivedOrders = new();
 
-    private ProductDto? SelectedProduct { get; set; }
-    private OrderDto? SelectedOrder { get; set; }
-
-    private bool IsProductViewModalVisible = false;
-    private bool IsOrderViewModalVisible = false;
-
-    private readonly List<string> DateRanges = new()
-    {
-        "24h",
-        "7d",
-        "1m",
-        "3m",
-        "6m",
-        "1y",
-        "All Time"
-    };
-
-    private string SelectedDateRange = "1m";
-
-    private decimal TotalRevenue;
-
-    private List<SalesPoint> SalesData = new();
+    private const int PRODUCT_PREVIEW_COUNT = 5;
+    private const int ORDER_PREVIEW_COUNT = 5;
 
     private List<ProductDto> BestSellingProducts
     {
@@ -466,7 +579,7 @@
         {
             return Products
                 .OrderByDescending(p => p.Sales)
-                .Take(5)
+                .Take(PRODUCT_PREVIEW_COUNT)
                 .ToList();
         }
     }
@@ -477,27 +590,36 @@
         {
             return ReceivedOrders
                 .OrderByDescending(o => o.CreatedAt)
-                .Take(5)
+                .Take(ORDER_PREVIEW_COUNT)
                 .ToList();
         }
     }
+
+    private bool LoadingProducts = true;
+    private bool LoadingOrders = true;
 
     protected override async Task OnInitializedAsync()
     {
         // Load the initial data
 
-        CurrentUser = await _UserService.GetCurrentUser();
+        LoadingProducts = true;
+        LoadingOrders = true;
 
         Products = await _ProductService.GetProductsAsync();
 
         PlacedOrders = await _OrderService.GetPlacedOrdersAsync();
         ReceivedOrders = await _OrderService.GetReceivedOrdersAsync();
 
-        //
+        LoadingProducts = false;
+        LoadingOrders = false;
 
-        await BuildSalesPoint();
+        StateHasChanged(); // required
 
-        //
+        // Build the sales data
+
+        await BuildSalesData();
+
+        // Build the customer summary
 
         BuildCustomerSummary();
 
@@ -505,6 +627,12 @@
 
         await ConnectSignalR();
     }
+
+    /* ===== SignalR ===== */
+
+    private HubConnection? _ProductHubConnection;
+
+    private HubConnection? _OrderHubConnection;
 
     private async Task ConnectSignalR()
     {
@@ -650,39 +778,35 @@
         await _OrderHubConnection.StartAsync();
     }
 
-    private void UpdateOrderList(List<OrderDto> list, OrderDto order)
-    {
-        var existing = list.FirstOrDefault(o => o.PublicId == order.PublicId);
-
-        if (existing is null)
-        {
-            // This is an order not in the list, this means this is
-            // either a new order or an old order that was updated
-
-            list.Insert(0, order);
-
-            // Maintain 5 preview items
-
-            if (list.Count > 5)
-            {
-                list.RemoveAt(list.Count - 1);
-            }
-        }
-        else
-        {
-            // This is an order in the list, this means this order is
-            // updated
-
-            existing.Status = order.Status;
-            existing.IsDeleted = order.IsDeleted;
-        }
-    }
-
     /* ===== Chart UI ===== */
 
-    private async Task BuildSalesPoint()
+    private readonly List<string> DateRanges = new()
     {
+        "24h",
+        "7d",
+        "1m",
+        "3m",
+        "6m",
+        "1y",
+        "All Time"
+    };
+
+    private string SelectedDateRange = "1m";
+
+    private decimal TotalRevenue;
+
+    private List<SalesPoint> SalesData = new();
+
+    private bool IsSalesDataLoading = true;
+
+    private async Task BuildSalesData()
+    {
+        IsSalesDataLoading = true;
+
+        // Filter orders
+
         DateTime now = DateTime.UtcNow;
+
         DateTime startDate = SelectedDateRange switch
         {
             "24h" => now.AddDays(-1),
@@ -700,6 +824,7 @@
             .ToList();
 
         // Decide grouping size based on range
+
         var points = new List<SalesPoint>();
 
         // Calculate the total revenue
@@ -711,7 +836,8 @@
 
         BuildSalesData(startDate, now, SelectedDateRange, filteredOrders);
 
-        //
+        // Define xMin and xMax (the minimum and maximum limit the chart can
+        // zoom out to, prevents zooming out of shown data)
 
         var dateTimes = SalesData.Select(sp => sp.X).ToList();
 
@@ -733,6 +859,8 @@
             xMin,
             xMax
         );
+
+        IsSalesDataLoading = false;
     }
 
     private void BuildSalesData(DateTime startDate, DateTime now, string SelectedDateRange, List<OrderDto> filteredOrders)
@@ -766,6 +894,7 @@
                 getBucketKey: o =>
                 {
                     // Bucket key = startDate + bucket index * 3 days
+
                     int daysOffset = (o.CreatedAt.Date - startDate.Date).Days;
                     int bucketIndex = daysOffset / 3;
                     return startDate.Date.AddDays(bucketIndex * 3);
@@ -802,6 +931,7 @@
             var bucketEnd = (i == buckets - 1) ? end : start.AddTicks(ticksPerBucket * (i + 1));
 
             // Find orders that belong to this bucket using getBucketKey projection
+
             var bucketOrders = orders.Where(o =>
             {
                 var key = getBucketKey(o);
@@ -819,9 +949,23 @@
         return bucketList;
     }
 
+    public class SalesPoint
+    {
+        [JsonPropertyName("x")]
+        public DateTime X { get; set; } // Date
+
+        [JsonPropertyName("y")]
+        public decimal Y { get; set; } // Revenue
+
+        [JsonPropertyName("orders")]
+        public int Orders { get; set; } // Additional info for tooltip
+    }
+
     /* ===== Customer Summary ===== */
 
     private List<CustomerSummary> CustomerSummaries { get; set; } = new();
+
+    private const int TOP_CUSTOMERS_PREVIEW_COUNT = 5;
 
     private List<CustomerSummary> TopCustomers
     {
@@ -829,7 +973,7 @@
         {
             return CustomerSummaries
                 .OrderByDescending(cs => cs.TotalSpent)
-                .Take(5)
+                .Take(TOP_CUSTOMERS_PREVIEW_COUNT)
                 .ToList();
         }
     }
@@ -850,36 +994,22 @@
             .ToList();
     }
 
-    private void SetDateRange(string range)
+    public class CustomerSummary
     {
-        SelectedDateRange = range;
+        public string Name { get; set; } = string.Empty;
+
+        public int TotalOrders { get; set; } = 0;
+
+        public decimal TotalSpent { get; set; } = 0;
     }
 
-    private string GetStatusBadgeClass(string status)
-    {
-        return status switch
-        {
-            "Pending" => "bg-warning text-dark",
-            "Completed" => "bg-success",
-            "Cancelled" => "bg-danger",
-            _ => "bg-secondary"
-        };
-    }
+    /* ===== Modals ===== */
 
-    private void NavigateToProducts()
-    {
-        _NavigationManager.NavigateTo("/dashboard/products");
-    }
+    private ProductDto? SelectedProduct;
+    private OrderDto? SelectedOrder;
 
-    private void NavigateToPlacedOrders()
-    {
-        _NavigationManager.NavigateTo("/dashboard/orders/placed");
-    }
-
-    private void NavigateToReceivedOrders()
-    {
-        _NavigationManager.NavigateTo("/dashboard/orders/received");
-    }
+    private bool IsProductViewModalVisible = false;
+    private bool IsOrderViewModalVisible = false;
 
     private void OpenProductViewModal(ProductDto product)
     {
@@ -905,6 +1035,41 @@
         IsOrderViewModalVisible = false;
     }
 
+    /* ===== Navigation ===== */
+
+    private void NavigateToProducts()
+    {
+        _NavigationManager.NavigateTo("/dashboard/products");
+    }
+
+    private void NavigateToPlacedOrders()
+    {
+        _NavigationManager.NavigateTo("/dashboard/orders/placed");
+    }
+
+    private void NavigateToReceivedOrders()
+    {
+        _NavigationManager.NavigateTo("/dashboard/orders/received");
+    }
+
+    /* ===== Utils ===== */
+
+    private void SetDateRange(string range)
+    {
+        SelectedDateRange = range;
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
     private async ValueTask DisposeAsync()
     {
         if (_ProductHubConnection is not null)
@@ -916,25 +1081,6 @@
         {
             await _OrderHubConnection.DisposeAsync();
         }
-    }
-
-    public class CustomerSummary
-    {
-        public string Name { get; set; } = string.Empty;
-
-        public int TotalOrders { get; set; } = 0;
-
-        public decimal TotalSpent { get; set; } = 0;
-    }
-
-    public class SalesPoint
-    {
-        [JsonPropertyName("x")]
-        public DateTime X { get; set; }  // date or label
-        [JsonPropertyName("y")]
-        public decimal Y { get; set; } // revenue
-        [JsonPropertyName("orders")]
-        public int Orders { get; set; } // extra info for tooltip
     }
 
     [Inject]
