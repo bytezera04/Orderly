@@ -43,8 +43,6 @@ This portfolio project demonstrates a rich user experience with product manageme
 
 ## 🖼️ Screenshots
 
-## 🖼️ Dashboard Screenshots
-
 ### Dashboard Analytics Overview  
 Get a snapshot of your marketplace’s health with real-time analytics and key performance indicators displayed clearly for quick decision-making.  
 ![Dashboard Overview](docs/dashboard_showcases/analytics.png)
