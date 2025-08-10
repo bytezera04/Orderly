@@ -1,0 +1,79 @@
+﻿
+@using Orderly.Client.Pages.Shared
+@using Orderly.Client.Services
+@using Orderly.Client.Components
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+
+@page "/dashboard/products"
+@namespace Orderly.Client.Pages.Dashboard
+@layout DashboardLayout
+
+@attribute [Authorize]
+
+<PageTitle>Products - Orderly</PageTitle>
+
+<style>
+    .product-content-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .product-content {
+        max-width: 1600px;
+        margin-right: 3rem;
+        margin-top: 2rem;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+    }
+
+    @@media (max-width: 991.98px) {
+        .product-content {
+            margin-right: 0;
+        }
+    }
+</style>
+
+<div class="product-content-wrapper m-4">
+    <div class="product-content">
+        <div class="mb-4 d-flex flex-column">
+            <div class="w-100 mb-4 d-flex justify-content-between align-items-center">
+                <h2 class="text-2xl font-bold text-[var(--fg)]">Manage Products</h2>
+                <button class="btn btn-primary" @onclick="ShowCreateModal">Add Product</button>
+            </div>
+        </div>
+
+        <ProductTable CanEditProducts="true"
+                      CanDeleteProducts="true" />
+    </div>
+</div>
+
+<!-- Product Create Modal -->
+
+<ProductCreateModal IsVisible="@IsCreateProductModalVisible"
+                    OnCreate="CloseCreateModal"
+                    OnCancel="CloseCreateModal" />
+
+@code {
+    private bool IsCreateProductModalVisible = false;
+
+    private void ShowCreateModal()
+    {
+        IsCreateProductModalVisible = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        IsCreateProductModalVisible = false;
+    }
+}

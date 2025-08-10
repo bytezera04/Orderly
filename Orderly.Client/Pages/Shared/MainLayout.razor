@@ -1,0 +1,383 @@
+﻿
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.JSInterop
+
+@inherits LayoutComponentBase
+
+@namespace Orderly.Client.Pages.Shared
+
+<style>
+    :root {
+        --primary: #3B82F6;
+        --bg: #121212;
+        --fg: #d0d0d0;
+        --nav-bg: #1f1f1f;
+        --muted: rgba(208, 208, 208, 0.7);
+        --border: #2a2a2a;
+        --danger: #dc2626;
+
+        --navbar-height: 70px;
+        --footer-height: 100px;
+    }
+
+    [data-theme="light"] {
+        --primary: #3B82F6;
+        --bg: #ffffff;
+        --fg: #1e1e1e;
+        --nav-bg: #f8f9fa;
+        --muted: rgba(30, 30, 30, 0.6);
+        --border: #dee2e6;
+        --danger: #dc2626;
+    }
+
+    .text-muted {
+        color: var(--muted) !important;
+    }
+
+    body {
+        background-color: var(--bg);
+        color: var(--fg);
+        font-family: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+        height: calc(var(--navbar-height) - 2px);
+        border-bottom: 2px solid var(--border);
+        background-color: var(--nav-bg) !important;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .nav-link,
+    .navbar-brand {
+        color: var(--fg) !important;
+        position: relative;
+        transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 3px;
+        bottom: -4px;
+        left: 50%;
+        background-color: var(--primary);
+        transition: all 0.3s ease;
+        border-radius: 2px;
+        transform: translateX(-50%);
+    }
+
+    .navbar-toggler:focus,
+    .navbar-toggler:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary);
+        border-radius: 4px;
+    }
+
+    .nav-link:hover::after,
+    .nav-link:focus::after,
+    .nav-link.active::after {
+        width: 60%;
+    }
+
+    @@media (max-width: 991.98px) {
+        .navbar {
+            height: auto;
+        }
+
+        .nav-link::after {
+            display: none;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            color: var(--primary) !important;
+        }
+    }
+
+    .navbar-toggler:focus,
+    .navbar-toggler:focus-visible {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .navbar-toggler-icon {
+        filter: invert(1);
+    }
+
+    .btn-primary {
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: scale(1.05);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary);
+        border-color: var(--primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary);
+        color: var(--fg);
+    }
+
+    .main-content {
+        min-height: calc(100vh - var(--navbar-height) - var(--footer-height));
+    }
+
+    .site-footer {
+        height: var(--footer-height);
+        background-color: var(--nav-bg);
+        color: var(--fg);
+        padding: 2rem 1rem;
+        margin-top: 4rem;
+        border-top: 2px solid var(--border);
+        font-size: 0.9rem;
+    }
+
+    .site-footer-nav a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .site-footer-nav a:hover,
+    .site-footer-nav a:focus {
+        color: #1e40af;
+        text-decoration: underline;
+        outline: none;
+    }
+
+    .site-footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .site-footer-brand {
+        font-weight: 700;
+        font-size: 1.25rem;
+        user-select: none;
+    }
+
+    .site-footer-nav {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .site-footer-nav a {
+        font-weight: 500;
+    }
+
+    .site-footer-socials {
+        display: flex;
+        gap: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .site-footer-socials a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border-radius: 0;
+        transition: none;
+    }
+
+    .site-footer-socials a:hover,
+    .site-footer-socials a:focus {
+        color: var(--primary);
+        background: transparent;
+        outline: none;
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 576px) {
+        .site-footer {
+            height: auto;
+            padding: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .site-footer-container {
+            flex-direction: column;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .site-footer-brand {
+            margin-bottom: 0.5rem;
+        }
+
+        .site-footer-nav {
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .site-footer-socials {
+            font-size: 1.5rem;
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="main-layout">
+    @*
+        Navbar
+    *@
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="/">Orderly</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 fs-6">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/dashboard/overview">Dashboard</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/privacy">Privacy</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/login">Login</NavLink>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" @onclick="ToggleTheme" aria-label="Toggle theme">
+                        <i class="bi bi-circle-half"></i>
+                        @CurrentTheme
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    @*
+        Content
+    *@
+
+    <div class="main-content">
+        @Body
+    </div>
+
+    @*
+        Footer
+    *@
+
+    <footer class="site-footer" role="contentinfo" aria-label="Site Footer">
+        <div class="site-footer-container">
+            <div class="site-footer-brand" aria-label="Site title">
+                Orderly
+            </div>
+
+            <nav class="site-footer-nav" aria-label="Footer navigation">
+                <NavLink href="/marketplace">Marketplace</NavLink>
+                <NavLink href="/dashboard">Dashboard</NavLink>
+                <NavLink href="/privacy">Privacy</NavLink>
+                <NavLink href="/about">About</NavLink>
+            </nav>
+
+            <div class="site-footer-socials" aria-label="Social media links">
+                <a href="https://github.com/tokyolatter04" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                    <i class="bi bi-github"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    window.collapseNavbarOnLinkClick = () => {
+        const navLinks = document.querySelectorAll(".navbar-collapse .nav-link");
+        const navbarCollapse = document.querySelector(".navbar-collapse");
+        navLinks.forEach(link => {
+            link.addEventListener("click", () => {
+                if (navbarCollapse.classList.contains("show")) {
+                    bootstrap.Collapse.getInstance(navbarCollapse)?.hide();
+                }
+            });
+        });
+    };
+</script>
+
+@code {
+    private string CurrentTheme { get; set; } = "Dark";
+
+    private bool Initialized { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !Initialized)
+        {
+            var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "preferredTheme");
+            if (!string.IsNullOrEmpty(savedTheme))
+            {
+                CurrentTheme = savedTheme switch
+                {
+                    "light" => "Light",
+                    _ => "Dark"
+                };
+                await SetTheme(savedTheme);
+            }
+            else
+            {
+                await SetTheme("dark");
+            }
+
+            await JS.InvokeVoidAsync("collapseNavbarOnLinkClick");
+
+            Initialized = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
+        await SetTheme(CurrentTheme.ToLower());
+        await JS.InvokeVoidAsync("localStorage.setItem", "preferredTheme", CurrentTheme.ToLower());
+    }
+
+    private async Task SetTheme(string theme)
+    {
+        await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", theme);
+        StateHasChanged();
+    }
+
+    private bool IsActive(string href)
+    {
+        var uri = Navigation.Uri;
+        var baseUri = Navigation.BaseUri;
+        return uri.TrimEnd('/').Equals(baseUri.TrimEnd('/') + href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+}

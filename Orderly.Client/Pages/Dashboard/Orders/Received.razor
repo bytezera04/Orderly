@@ -1,0 +1,61 @@
+﻿
+@using Orderly.Client.Pages.Shared
+@using Orderly.Client.Services
+@using Orderly.Client.Components
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+
+@page "/dashboard/orders/received"
+@namespace Orderly.Client.Pages.Dashboard.Orders
+@layout DashboardLayout
+
+@attribute [Authorize]
+
+<PageTitle>Received Orders - Orderly</PageTitle>
+
+<style>
+    .order-content-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .order-content {
+        max-width: 1600px;
+        margin-right: 3rem;
+        margin-top: 2rem;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+    }
+
+    @@media (max-width: 991.98px) {
+        .order-content {
+            margin-right: 0;
+        }
+    }
+</style>
+
+<div class="order-content-wrapper m-4">
+    <div class="order-content">
+        <div class="mb-4 d-flex flex-column">
+            <div class="w-100 mb-4 d-flex justify-content-between align-items-center">
+                <h2 class="text-2xl font-bold text-[var(--fg)]">Manage Received Orders</h2>
+            </div>
+        </div>
+
+        <OrderTable UserRole="Seller"
+                    CanEditOrders="true"
+                    CanCancelOrders="true"
+                    CanViewChat="true" />
+    </div>
+</div>
+

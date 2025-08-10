@@ -1,0 +1,495 @@
+﻿
+@using Microsoft.AspNetCore.SignalR.Client
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
+
+@implements IDisposable
+
+@namespace Orderly.Client.Components
+
+<link rel="stylesheet" href="/css/table.css" />
+
+<style>
+    :root {
+        --table-height: calc((var(--row-height) * @(@PageSize)) + var(--col-height) + 2px);
+    }
+
+    .table-wrapper {
+        height: var(--table-height);
+    }
+
+    .product-table tr {
+        cursor: pointer;
+    }
+
+    .product-table td.public-id {
+        color: var(--primary) !important;
+    }
+
+    .product-table th.public-id,
+    .product-table td.public-id {
+        width: 10%;
+    }
+
+    .product-table th.name,
+    .product-table td.name {
+        width: 20%;
+    }
+
+    .product-table th.category,
+    .product-table td.category {
+        width: 20%;
+    }
+
+    .product-table th.price,
+    .product-table td.price {
+        width: 10%;
+    }
+
+    .product-table th.stock,
+    .product-table td.stock {
+        width: 10%;
+    }
+
+    .product-table th.sales,
+    .product-table td.sales {
+        width: 10%;
+    }
+
+    .product-table th.created-at,
+    .product-table td.created-at {
+        width: 10%;
+    }
+
+    .product-table th.actions,
+    .product-table td.actions {
+        width: 10%;
+    }
+</style>
+
+<div class="table-container product-table-container">
+    <div class="filters">
+        <input type="text"
+               placeholder="Search products..."
+               @oninput="OnSearchInput"
+               value="@SearchText"
+               class="search-input"
+               aria-label="Search products" />
+
+        <select @bind="SelectedCategory" class="category-select form-select" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            @foreach (var cat in Categories)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+
+    <div class="table-wrapper product-table-wrapper no-scroll">
+        <table class="table product-table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" class="public-id">ID</th>
+
+                    @foreach (var col in Columns)
+                    {
+                        <th @onclick="@(() => SortBy(col.Property))" class="sortable @(GetSortClass(col.Property)) @(GetColumnClass(col.Property))" scope="col">
+                            @col.Title
+                            <span class="sort-indicator {@GetColumnClass(col.Title)}">
+                                @GetSortIndicator(col.Property)
+                            </span>
+                        </th>
+                    }
+
+                    @*
+                        Add management controls for this product
+                    *@
+
+                    @if (DisplayActionsColumn())
+                    {
+                        <th class="actions-header actions" scope="col">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsLoading)
+                {
+                    <tr>
+                        <td colspan="@(Columns.Count + (@DisplayActionsColumn() ? 1 : 0))"
+                            class="loading-cell">
+                            Loading products...
+                        </td>
+                    </tr>
+                }
+                else if (!PagedProducts.Any())
+                {
+                    <tr>
+                        <td colspan="@(Columns.Count + (@DisplayActionsColumn() ? 1 : 0))"
+                            class="no-data-cell">
+                            No products found. Create one to get started!
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var product in PagedProducts)
+                    {
+                        <tr @ondblclick="() => OpenViewModal(product)" @ontouchstart="() => OpenViewModal(product)">
+                            <td class="public-id"><strong>#@product.PublicId</strong></td>
+                            <td class="name">@product.Name</td>
+                            <td class="category">@product.Category</td>
+                            <td class="price">@product.Price.ToString("C")</td>
+                            <td class="stock">@product.Stock</td>
+                            <td class="sales">@product.Sales</td>
+                            <td class="created-at">@DateTimeHelper.ToReadableDateShort(product.CreatedAt)</td>
+
+                            @*
+                                Add management controls for products
+                            *@
+
+                            @if (DisplayActionsColumn())
+                            {
+                                <td class="actions-cell actions">
+                                    @if (CanEditProducts)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenEditModal(product)" title="Edit">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    }
+                                    @if (CanDeleteProducts)
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenDeleteModal(product)" title="Delete">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="PreviousPage" disabled="@IsFirstPage" aria-label="Previous page">Previous</button>
+        <span>Page @Page of @TotalPages</span>
+        <button class="btn btn-outline-secondary btn-sm" @onclick="NextPage" disabled="@IsLastPage" aria-label="Next page">Next</button>
+    </div>
+</div>
+
+<!-- Product View Modal -->
+
+<ProductViewModal ProductToView="@SelectedProduct"
+                  IsVisible="@IsViewModalVisible"
+                  OnClose="@CloseViewModal" />
+
+<!-- Product Edit Modal -->
+
+<ProductEditModal ProductToEdit="@SelectedProduct"
+                  IsVisible="@IsEditModalVisible"
+                  OnSave="@CloseEditModal"
+                  OnCancel="@CloseEditModal" />
+
+<!-- Product Delete Modal -->
+
+<ProductDeleteModal ProductToDelete="@SelectedProduct"
+                  IsVisible = "@IsDeleteModalVisible"
+                  OnDelete="@CloseDeleteModal"
+                  OnCancel="@CloseDeleteModal"/>
+
+@code {
+    [Parameter]
+    public bool CanEditProducts { get; set; } = false;
+
+    [Parameter]
+    public bool CanDeleteProducts { get; set; } = false;
+
+    private ProductDto? SelectedProduct { get; set; }
+
+    private bool IsViewModalVisible = false;
+    private bool IsEditModalVisible = false;
+    private bool IsDeleteModalVisible = false;
+
+    private List<ProductDto> Products = new();
+
+    private int Page = 1;
+    private const int PageSize = 10;
+
+    private string SearchText = string.Empty;
+    private string? SelectedCategory;
+    private string SortColumn = nameof(ProductDto.CreatedAt);
+    private bool SortAscending = false;
+
+    private bool IsLoading = true;
+
+    private IEnumerable<ProductDto> FilteredProducts
+    {
+        get
+        {
+            return Products
+                .Where(p => string.IsNullOrWhiteSpace(SearchText) || p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .Where(p => string.IsNullOrWhiteSpace(SelectedCategory) || p.Category == SelectedCategory)
+                .OrderByDynamic(SortColumn, SortAscending);
+        }
+    }
+
+    private IEnumerable<ProductDto> PagedProducts
+    {
+        get
+        {
+            return FilteredProducts
+                .Skip((Page - 1) * PageSize)
+                .Take(PageSize);
+        }
+    }
+
+    private bool IsFirstPage
+    {
+        get
+        {
+            return Page <= 1;
+        }
+    }
+
+    private bool IsLastPage
+    {
+        get
+        {
+            return Page >= TotalPages;
+        }
+    }
+
+    private int TotalPages
+    {
+        get
+        {
+            return (int)Math.Ceiling((double)FilteredProducts.Count() / PageSize);
+        }
+    }
+
+    private readonly List<(string Title, string Property)> Columns = new()
+    {
+        ("Name", nameof(ProductDto.Name)),
+        ("Category", nameof(ProductDto.Category)),
+        ("Price", nameof(ProductDto.Price)),
+        ("Stock", nameof(ProductDto.Stock)),
+        ("Sales", nameof(ProductDto.Sales)),
+        ("Created", nameof(ProductDto.CreatedAt))
+    };
+
+    private List<string> Categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchProducts();
+
+        Categories = Products
+            .Select(prop => prop.Category)
+            .Distinct()
+            .ToList();
+
+        await ConnectSignalR();
+    }
+
+    private async Task FetchProducts()
+    {
+        IsLoading = true;
+        Products = await _ProductService.GetProductsAsync();
+        IsLoading = false;
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        // Reset page number and set search text
+
+        Page = 1;
+
+        SearchText = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private string GetColumnClass(string columnName)
+    {
+        return columnName switch
+        {
+            nameof(ProductDto.PublicId) => "public-id",
+            nameof(ProductDto.Name) => "name",
+            nameof(ProductDto.Category) => "category",
+            nameof(ProductDto.Price) => "price",
+            nameof(ProductDto.Stock) => "stock",
+            nameof(ProductDto.Sales) => "sales",
+            nameof(ProductDto.CreatedAt) => "created-at",
+            _ => "auto"
+        };
+    }
+
+    private bool DisplayActionsColumn()
+    {
+        return CanEditProducts || CanDeleteProducts;
+    }
+
+    // ***** Sorting ***** //
+
+    private string GetSortClass(string columnName)
+    {
+        if (columnName != SortColumn)
+            return string.Empty;
+
+        return SortAscending ? "sort-asc" : "sort-desc";
+    }
+
+    string GetSortIndicator(string column)
+    {
+        if (SortColumn != column) return "";
+        return SortAscending ? "▲" : "▼";
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+        {
+            // This column is already selected, flip the sort direction
+
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            // This column is different, apply it and default to descending
+            // sort
+
+            SortColumn = column;
+            SortAscending = false;
+        }
+    }
+
+    // ***** Paging ***** //
+
+    private void NextPage()
+    {
+        if (!IsLastPage)
+        {
+            Page++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (!IsFirstPage)
+        {
+            Page--;
+        }
+    }
+
+    // ***** SignalR ***** //
+
+    private HubConnection? _HubConnection;
+
+    private async Task ConnectSignalR()
+    {
+        _HubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri("/producthub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _HubConnection.On<ProductDto>("ProductCreated", product =>
+        {
+            // Add this product to the table if it doesn't exist
+
+            if (!Products.Any(p => p.PublicId == product.PublicId))
+            {
+                Products.Insert(0, product);
+
+                StateHasChanged();
+            }
+        });
+
+        _HubConnection.On<ProductDto>("ProductUpdated", product =>
+        {
+            // Update the product (this assumes it's already in the table)
+
+            int index = Products.FindIndex(p => p.PublicId == product.PublicId);
+
+            if (index >= 0)
+            {
+                Products[index] = product;
+
+                StateHasChanged();
+            }
+        });
+
+        _HubConnection.On<string>("ProductDeleted", productPublicId =>
+        {
+            // Delete the product from the table if it exists
+
+            ProductDto? product = Products.FirstOrDefault(p => p.PublicId == productPublicId);
+
+            if (product is not null)
+            {
+                Products.Remove(product);
+
+                StateHasChanged();
+            }
+        });
+
+        await _HubConnection.StartAsync();
+    }
+
+    public async ValueTask Dispose()
+    {
+        if (_HubConnection is not null)
+        {
+            await _HubConnection.DisposeAsync();
+        }
+    }
+
+    // ***** View Product Modal ***** //
+
+    private void OpenViewModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsViewModalVisible = true;
+    }
+
+    private void CloseViewModal()
+    {
+        SelectedProduct = null;
+        IsViewModalVisible = false;
+    }
+
+    // ***** Edit Product Modal ***** //
+
+    private void OpenEditModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsEditModalVisible = true;
+    }
+
+    private void CloseEditModal()
+    {
+        SelectedProduct = null;
+        IsEditModalVisible = false;
+    }
+
+    // ***** Delete Product Modal ***** //
+
+    private void OpenDeleteModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsDeleteModalVisible = true;
+    }
+
+    private Task CloseDeleteModal()
+    {
+        IsDeleteModalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        throw new NotImplementedException();
+    }
+
+    [Inject] ProductService _ProductService { get; set; }
+    [Inject] NavigationManager _NavigationManager { get; set; }
+}

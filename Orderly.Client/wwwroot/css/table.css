@@ -1,0 +1,226 @@
+﻿
+:root {
+    --col-height: 40px;
+    --row-height: 52px;
+}
+
+.table-container {
+    min-height: 400px;
+    margin-right: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+.table-container,
+.table-container * {
+    box-sizing: border-box;
+}
+
+/* Search Filters */
+
+.table-container .filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.table-container .search-input,
+.table-container .category-select {
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+}
+
+.table-container .search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
+    width: 100%;
+    padding: .375rem .75rem;
+    border-radius: .25rem;
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+}
+
+.table-container .search-input:focus,
+.table-container .category-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+.table-container .category-select {
+    flex: 0 0 180px;
+    max-width: 180px;
+}
+
+/* Scrollable Table Wrapper */
+
+.table-container .table-wrapper {
+    flex-shrink: 1;
+    flex-grow: 0;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--bg);
+}
+
+/* Scrollbar Styling */
+
+.table-container .table-wrapper::-webkit-scrollbar {
+    width: 10px;
+}
+
+.table-container .table-wrapper::-webkit-scrollbar-track {
+    background: var(--nav-bg);
+}
+
+.table-container .table-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 5px;
+    border: 2px solid var(--nav-bg);
+}
+
+.table-container .table-wrapper {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--nav-bg);
+}
+
+.table-container .table-wrapper.no-scroll {
+    overflow-y: visible !important;
+}
+
+/* Table Styling */
+
+.table-container table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+    color: var(--fg);
+    background-color: var(--bg);
+}
+
+.table-container thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--nav-bg);
+    color: var(--primary);
+    z-index: 2;
+    user-select: none;
+}
+
+.table-container th,
+.table-container td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-color: var(--bg) !important;
+    color: var(--fg) !important;
+}
+
+.table-container th {
+    height: var(--col-height);
+}
+
+.table-container td {
+    height: var(--row-height);
+}
+
+.table-container th.sortable {
+    cursor: pointer;
+}
+
+.table-container th.sortable:hover {
+    background-color: var(--border);
+}
+
+.table-container .sort-indicator {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--primary);
+}
+
+.table-container tr:hover {
+    background-color: var(--nav-bg);
+}
+
+.table-container .loading-cell,
+.table-container .no-data-cell {
+    text-align: center;
+    color: var(--primary);
+    padding: 2rem 0;
+    font-style: italic;
+}
+
+.table-container .actions-cell {
+    white-space: nowrap;
+    width: 110px;
+}
+
+/* Pagination */
+
+.table-container .pagination {
+    flex-shrink: 0;
+    padding-top: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    color: var(--fg);
+    background-color: var(--bg);
+}
+
+.table-container .pagination button {
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.table-container .pagination button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.table-container .pagination button:not(:disabled):hover {
+    background-color: var(--primary);
+    color: var(--bg);
+}
+
+/* Action buttons */
+
+.table-container .actions-cell button {
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    transition: background-color 0.3s, filter 0.3s;
+    color: var(--fg);
+    border: none;
+}
+
+.table-container .actions-cell button:hover {
+    filter: brightness(0.85);
+}

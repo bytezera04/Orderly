@@ -1,0 +1,209 @@
+﻿
+@using Microsoft.AspNetCore.SignalR.Client
+@using Orderly.Client.Components
+@using Orderly.Client.Pages.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+
+@page "/dashboard/chat/order/{OrderPublicId}"
+@namespace Orderly.Client.Pages.Chat
+@layout DashboardLayout
+
+@attribute [Authorize]
+
+<PageTitle>Order Chat - Orderly</PageTitle>
+
+@if (CurrentOrder is null)
+{
+    <div class="text-muted">Loading...</div>
+}
+else
+{
+    <ChatWindow CanSendMessages="true"
+                CurrentUser="@CurrentUser"
+                CurrentChat="@CurrentChat"
+                Messages="@Messages"
+                OnSend="@OnMessageSend">
+
+                <SidebarContent>
+                    @if (CurrentOrder is not null)
+                    {
+                        <h5 class="user-select-none">Order Info</h5>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-label user-select-none">Order ID</div>
+                            <div class="sidebar-value public-id">#@CurrentOrder.PublicId</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-label user-select-none">Status</div>
+                            <div class="sidebar-value">@CurrentOrder.Status</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-label user-select-none">Product</div>
+                            <div class="sidebar-value">@(CurrentOrder.Product?.Name ?? "(Deleted Product)")</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-label user-select-none">Total Price</div>
+                            <div class="sidebar-value">@CurrentOrder.Price</div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-label user-select-none">Customer</div>
+                            <div class="sidebar-value">@(CurrentOrder.Customer?.FullName ?? "(Deleted User)")</div>
+                        </div>
+
+                        <button class="btn btn-outline-primary mt-3"
+                                @onclick="ShowOrderViewModal">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>
+                            View More
+                        </button>
+                    }
+                </SidebarContent>
+    </ChatWindow>
+}
+
+<!-- Order View Modal -->
+
+<OrderViewModal IsVisible="@IsOrderViewModalVisible"
+                OrderToView="@CurrentOrder"
+                OnClose="@CloseOrderViewModal" />
+
+@code {
+    [Parameter]
+    public string? OrderPublicId { get; set; }
+
+    private UserDto? CurrentUser;
+
+    private OrderDto? CurrentOrder;
+
+    private ChatThreadDto? CurrentChat;
+
+    private List<ChatMessageDto> Messages = new();
+
+    private bool IsOrderViewModalVisible { get; set; } = false;
+
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (OrderPublicId is null)
+        {
+            return;
+        }
+
+        // Load the user
+
+        CurrentUser = await _UserService.GetCurrentUser();
+
+        if (CurrentUser is null)
+        {
+            await JS.InvokeVoidAsync("history.back");
+
+            return;
+        }
+
+        // Load the order
+
+        CurrentOrder = await _OrderService.GetOrder(OrderPublicId);
+
+        if (CurrentOrder is null)
+        {
+            await JS.InvokeVoidAsync("history.back");
+
+            return;
+        }
+
+        // Load the chat
+
+        CurrentChat = await _ChatService.GetChatAsync(CurrentOrder.PublicId);
+
+        if (CurrentChat is null)
+        {
+            return;
+        }
+
+        // Load messages
+
+        Messages = await _ChatService.GetChatMessagesAsync(CurrentChat) ?? new();
+
+        // Connect SignalR
+
+        await ConnectSignalR();
+    }
+
+    private async Task OnMessageSend(string content)
+    {
+        if (CurrentChat is null)
+        {
+            return;
+        }
+
+        await _ChatService.CreateChatMessageAsync(CurrentChat, new ChatMessageDto
+        {
+            Content = content
+        });
+    }
+
+    private void ShowOrderViewModal()
+    {
+        IsOrderViewModalVisible = true;
+    }
+
+    private Task CloseOrderViewModal()
+    {
+        IsOrderViewModalVisible = false;
+
+        return Task.CompletedTask;
+    }
+
+    // ***** SignalR ***** //
+
+    private HubConnection? _HubConnection;
+
+    private async Task ConnectSignalR()
+    {
+        if (CurrentChat is null)
+        {
+            return;
+        }
+
+        _HubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri($"/chathub?chatPublicId={CurrentChat.PublicId}"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _HubConnection.On<Tuple<string, ChatMessageDto>>("MessageCreated", data =>
+        {
+            string chatPublicId = data.Item1;
+            ChatMessageDto message = data.Item2;
+
+            if (chatPublicId == CurrentChat.PublicId)
+            {
+                Messages.Add(message);
+
+                StateHasChanged();
+            }
+        });
+
+        await _HubConnection.StartAsync();
+    }
+
+    [Inject]
+    private UserService _UserService { get; set; }
+
+    [Inject]
+    private OrderService _OrderService { get; set; }
+
+    [Inject]
+    private ChatService _ChatService { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
+}

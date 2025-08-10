@@ -1,0 +1,64 @@
+﻿
+.tagify {
+    background-color: var(--nav-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    color: var(--fg);
+    min-height: 38px;
+}
+
+.tagify__input {
+    background-color: var(--nav-bg) !important;
+    color: var(--fg) !important;
+}
+
+.tagify__input:focus {
+    background-color: var(--nav-bg) !important;
+}
+
+.tagify--focus {
+    background-color: var(--nav-bg) !important;
+}
+
+.tagify__tag {
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    padding: 0 0.5rem;
+    font-weight: 500;
+}
+
+.tagify__tag:hover {
+    background: #2563eb;
+}
+
+.tagify__tag__removeBtn {
+    color: white;
+    opacity: 0.7;
+}
+
+.tagify__tag__removeBtn:hover {
+    color: white;
+    opacity: 1;
+}
+
+.tagify--focus {
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+.tagify__dropdown {
+    background-color: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+}
+
+.tagify__dropdown__item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.tagify__dropdown__item:hover {
+    background-color: var(--nav-bg);
+}

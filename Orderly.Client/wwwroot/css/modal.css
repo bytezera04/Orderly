@@ -1,0 +1,245 @@
+﻿
+/* === Modal Backdrop === */
+
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+/* === Modal Container === */
+
+.modal-content {
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    animation: scaleIn 0.25s ease-out;
+}
+
+/* === Header === */
+
+.modal-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+/* === Description List === */
+
+.modal-content dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    row-gap: 0.75rem;
+    column-gap: 1.25rem;
+}
+
+.modal-content dt {
+    font-weight: 600;
+    color: var(--primary);
+    text-align: right;
+    user-select: none;
+    margin-right: 0.5rem;
+}
+
+.modal-content dd {
+    margin: 0;
+    color: var(--fg);
+    overflow-wrap: anywhere;
+}
+
+/* === Buttons === */
+
+.modal-content .modal-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.modal-content .modal-btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+}
+
+.modal-content .modal-btn.cancel {
+    background-color: var(--border);
+    color: var(--fg);
+}
+
+.modal-content .modal-btn.cancel:hover {
+    background-color: #3a3a3a;
+}
+
+.modal-content .modal-btn.primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.modal-content .modal-btn.primary:hover:enabled {
+    background-color: #2563eb;
+}
+
+.modal-content .modal-btn.danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.modal-content .modal-btn.danger:hover {
+    background-color: #dc2626;
+}
+
+.modal-content .modal-btn:disabled,
+.modal-content .modal-btn[disabled] {
+    background-color: var(--border);
+    color: var(--fg);
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* === Select Fields === */
+
+.modal-content select,
+.modal-content input,
+.modal-content textarea {
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    width: 100%;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-content select:disabled,
+.modal-content select[disabled],
+.modal-content input:disabled,
+.modal-content input[disabled],
+.modal-content textarea:disabled,
+.modal-content textarea[disabled] {
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* === Inputs === */
+
+.modal-content textarea {
+    resize: none;
+}
+
+.modal-content input[type=number]::-webkit-inner-spin-button,
+.modal-content input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.modal-content input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* === Input Currency Wrapper === */
+
+.modal-content .input-currency {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--fg);
+    background-color: var(--nav-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.modal-content .input-currency span {
+    user-select: none;
+    color: var(--fg);
+    white-space: nowrap;
+}
+
+.modal-content .input-currency input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    font-size: 1rem;
+    font-weight: 500;
+    outline: none;
+    padding: 0;
+    min-width: 0;
+}
+
+/* === Tagify Styling === */
+
+.modal-content .tagify {
+    background-color: var(--nav-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    width: 100%;
+    font-size: 1rem;
+    box-sizing: border-box;
+    min-height: 38px;
+}
+
+.modal-content .tagify__input {
+    color: var(--fg);
+    padding: 0.25rem 0;
+}
+
+.modal-content .tagify__tag {
+    background-color: var(--primary);
+    color: white;
+    border-radius: 4px;
+    padding: 0 6px;
+    margin: 3px 4px 3px 0;
+    font-size: 0.9rem;
+}
+
+.modal-content .tagify__tag__removeBtn {
+    color: white;
+}
+
+.modal-content .tagify__input::placeholder {
+    color: var(--fg);
+    opacity: 0.6;
+}
+
+/* === Animations === */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}

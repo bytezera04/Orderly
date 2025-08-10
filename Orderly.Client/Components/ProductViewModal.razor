@@ -1,0 +1,103 @@
+﻿
+@using Orderly.Shared.Dtos
+
+@namespace Orderly.Client.Components
+
+<link rel="stylesheet" href="css/modal.css" />
+<link rel="stylesheet" href="css/tagify.css" />
+<link href="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.css" rel="stylesheet" />
+
+<script src="js/formatting.js"></script>
+<script src="js/tagifyInterop.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify"></script>
+
+@if (IsVisible && ProductToView is not null)
+{
+    <div class="modal-backdrop">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3 class="user-select-none">Product Details</h3>
+
+            <dl>
+                <dt class="user-select-none">Product ID:</dt>
+                <dd>@ProductToView.PublicId</dd>
+
+                <dt class="user-select-none">Name:</dt>
+                <dd>@ProductToView.Name</dd>
+
+                <dt class="user-select-none">Description:</dt>
+                <dd>@ProductToView.Description</dd>
+
+                <dt class="user-select-none">Category:</dt>
+                <dd>@ProductToView.Category</dd>
+
+                <dt class="user-select-none">Price:</dt>
+                <dd>@ProductToView.Price.ToString("C")</dd>
+
+                <dt class="user-select-none">Stock:</dt>
+                <dd>@ProductToView.Stock</dd>
+
+                <dt class="user-select-none">Owner:</dt>
+                <dd>@(ProductToView.Owner?.FullName ?? "(Deleted User)")</dd>
+
+                <dt class="user-select-none">Tags:</dt>
+                <dd>
+                    @if (ProductToView.Tags?.Count > 0)
+                    {
+                        <input id="tagsInput" class="form-control" />
+                    }
+                    else
+                    {
+                        <em class="text-muted">(No tags)</em>
+                    }
+                </dd>
+
+                <dt class="user-select-none">Created At:</dt>
+                <dd>@ProductToView.CreatedAt.ToString("f")</dd>
+            </dl>
+
+            <div class="modal-actions">
+                <button class="modal-btn primary" @onclick="OnCloseClicked">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public ProductDto? ProductToView { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool IsTagifyInitialized { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsVisible && ProductToView is not null)
+        {
+            if (!IsTagifyInitialized)
+            {
+                await JS.InvokeVoidAsync("tagifyInterop.initReadonly", "tagsInput", ProductToView.Tags);
+
+                IsTagifyInitialized = true;
+            }
+        }
+        else
+        {
+            IsTagifyInitialized = false;
+        }
+    }
+
+    public async Task OnCloseClicked()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    [Inject] IJSRuntime JS { get; set; }
+}

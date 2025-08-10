@@ -1,0 +1,399 @@
+﻿
+@using Orderly.Client.Pages.Shared
+
+@page "/"
+@namespace Orderly.Client.Pages
+@layout MainLayout
+
+<PageTitle>Home - Orderly</PageTitle>
+
+<style>
+    .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        will-change: opacity, transform;
+    }
+
+    .fade-in.visible {
+        opacity: 1;
+        transform: none;
+    }
+
+    .hero-section {
+        position: relative;
+        height: 500px;
+        border-radius: 1rem;
+        overflow: hidden;
+        user-select: none;
+    }
+
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            to bottom,
+            rgba(18, 18, 18, 0.6) 0%,
+            rgba(18, 18, 18, 0.6) 100%
+        );
+        z-index: 1;
+    }
+
+    [data-theme="light"] .hero-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.65) 0%,
+            rgba(255, 255, 255, 0.65) 100%
+        );
+    }
+
+    .hero-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        text-align: center;
+        color: var(--fg);
+        padding: 1rem;
+        width: 90%;
+        max-width: 800px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-text h1 {
+        font-size: 3rem;
+    }
+
+    .hero-text p {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .hero-section {
+            height: 400px;
+        }
+
+        .hero-text h1 {
+            font-size: 2rem;
+        }
+
+        .hero-text p {
+            font-size: 1rem;
+        }
+    }
+
+    .features .flip-card {
+        perspective: 1000px;
+        height: 100%;
+        width: 100%;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner,
+    .flip-card.flipped .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 1rem;
+        background-color: var(--nav-bg);
+        color: var(--fg);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .flip-card-front i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+    }
+
+    .flip-card-back {
+        transform: rotateY(180deg);
+    }
+
+    .features .col {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .flip-card {
+        flex-grow: 1;
+        height: 100%;
+        min-height: 280px;
+    }
+
+    .flip-card-inner {
+        height: 100%;
+    }
+
+    .flip-card {
+        flex-grow: 1;
+    }
+
+    .about img {
+        max-width: 100%;
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .about .text-area {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .about .text-area h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .about .text-area p {
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        color: var(--fg);
+        max-width: 90%;
+    }
+
+    @@media (max-width: 768px) {
+        .about .text-area h2 {
+            font-size: 1.5rem;
+        }
+
+        .about .text-area p {
+            max-width: 100%;
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    @*
+        Hero Banner
+    *@
+
+    <section class="hero-section mb-5 fade-in">
+        <img id="hero-image" src="/images/hero-background.webp" class="hero-image" alt="Hero background" />
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+            <h1 class="fw-bold">Welcome to Orderly</h1>
+            <p>A modern marketplace to create products, manage orders, and communicate seamlessly.</p>
+            <NavLink class="btn btn-primary btn-lg" href="/marketplace">Explore Marketplace</NavLink>
+        </div>
+    </section>
+
+    @*
+        Features
+    *@
+
+    <section class="features container py-5 fade-in">
+        <div class="row g-4 text-center">
+            <div class="col-sm-12 col-md-6 col-lg-4 d-flex">
+                <div class="flip-card w-100 h-100">
+                    <div class="flip-card-inner h-100">
+                        <div class="flip-card-front">
+                            <i class="bi bi-box-seam"></i>
+                            <h5 class="card-title fw-semibold mt-3">Create Products</h5>
+                            <p class="card-text">Easily create and manage your products in a modern dashboard.</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <p class="card-text px-3">You can create digital or physical products, assign tags, and manage them efficiently.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-6 col-lg-4 d-flex">
+                <div class="flip-card w-100 h-100">
+                    <div class="flip-card-inner h-100">
+                        <div class="flip-card-front">
+                            <i class="bi bi-bag-check"></i>
+                            <h5 class="card-title fw-semibold mt-3">Manage Orders</h5>
+                            <p class="card-text">Track orders in real-time and keep your sales organized and efficient.</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <p class="card-text px-3">Get real-time updates, sort by status, and keep everything in sync with minimal effort.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-8 offset-md-2 col-lg-4 offset-lg-0 d-flex">
+                <div class="flip-card w-100 h-100">
+                    <div class="flip-card-inner h-100">
+                        <div class="flip-card-front">
+                            <i class="bi bi-chat-dots"></i>
+                            <h5 class="card-title fw-semibold mt-3">Communicate</h5>
+                            <p class="card-text">Chat with your customers for seamless collaboration and service.</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <p class="card-text px-3">Built-in messaging ensures you're always in touch and can provide great customer support.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @*
+        About
+    *@
+
+    <section class="about container py-5 border-top fade-in">
+        <div class="row align-items-center g-5">
+            <div class="col-md-6">
+                <img src="/images/Dashboard Showcases/Analytics.png" alt="Analytics Showcase" />
+            </div>
+            <div class="col-md-6 text-area">
+                <h2>Business Analytics</h2>
+
+                <p class="fs-5">
+                    Gain deep insights into your sales and customer behavior with powerful analytics tools. Our dashboard offers
+                    clear visualizations to track key performance metrics. Make data-driven decisions with confidence and optimize
+                    your business strategies effectively.
+                </p>
+
+                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/overview">Get Started</NavLink>
+            </div>
+        </div>
+    </section>
+
+    <section class="about container py-5 fade-in">
+        <div class="row align-items-center g-5 flex-md-row-reverse">
+            <div class="col-md-6">
+                <img src="/images/Dashboard Showcases/Product Management.png" alt="Product Management Showcase" />
+            </div>
+            <div class="col-md-6 text-area">
+                <h2>Smart Product Management</h2>
+
+                <p class="fs-5">
+                    Manage your products efficiently with a streamlined interface designed for ease and speed. Add, edit, and
+                    organize your inventory while tracking stock levels in real time. Simplify your work-flow and stay ahead
+                    of demand with smart product tools.
+                </p>
+
+                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/products">Manage Products</NavLink>
+            </div>
+        </div>
+    </section>
+
+    <section class="about container py-5 fade-in">
+        <div class="row align-items-center g-5">
+            <div class="col-md-6">
+                <img src="/images/Dashboard Showcases/Order Management.png" alt="Order Management Showcase" />
+            </div>
+            <div class="col-md-6 text-area">
+                <h2>Easy Order Management</h2>
+
+                <p class="fs-5">
+                    Keep track of all your orders in one place with a simple, intuitive system. View order statuses, update
+                    details, and process requests seamlessly. Stay organized and ensure timely fulfillment to boost customer
+                    satisfaction.
+                </p>
+
+                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/orders/received">Manage Orders</NavLink>
+            </div>
+        </div>
+    </section>
+
+    <section class="about container py-5 fade-in">
+        <div class="row align-items-center g-5 flex-md-row-reverse">
+            <div class="col-md-6">
+                <img src="/images/Dashboard Showcases/Chats.png" alt="Chat Showcase" />
+            </div>
+            <div class="col-md-6 text-area">
+                <h2>Real-time Instant Communication</h2>
+
+                <p class="fs-5">
+                    Connect with your customers instantly through our built-in chat feature. Respond to inquiries, provide
+                    support, and collaborate in real time to build strong relationships. Communication has never been easier
+                    or more efficient.
+                </p>
+
+                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/chats">View Chats</NavLink>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Fade in
+
+    window.initFadeInSections = () => {
+        const sections = document.querySelectorAll('.fade-in');
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Keep the element visible after it fades in
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    };
+
+    // Flip cards
+
+    window.initFlipCards = () => {
+        document.querySelectorAll('.flip-card').forEach(card => {
+            card.addEventListener('click', function () {
+                if (window.innerWidth <= 768) {
+                    this.classList.toggle('flipped');
+                }
+            });
+        });
+    };
+</script>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initFadeInSections");
+
+            await JS.InvokeVoidAsync("initFlipCards");
+        }
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
+}

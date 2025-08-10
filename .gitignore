@@ -1,0 +1,37 @@
+
+# Visual Studio / .NET typical ignores
+
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vsconfig
+.vscode/
+
+# Build output
+
+**/bin/
+**/obj/
+
+# NuGet packages
+
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+
+# Logs
+
+*.log
+logs/
+
+# OS generated files
+
+.DS_Store
+Thumbs.db
+
+# Server side config (contains secrets)
+
+Orderly.Server/appsettings.json
+Orderly.Server/appsettings.Development.json

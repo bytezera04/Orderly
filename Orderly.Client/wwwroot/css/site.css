@@ -1,0 +1,58 @@
+
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background-color: #f44336;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    z-index: 1000;
+}
+
+#blazor-error-ui.visible {
+    display: block;
+}
+
+#blazor-error-ui a {
+    color: white;
+    margin-left: 1rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-outline-danger {
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--danger);
+    color: var(--fg);
+}
+
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--bg, #121212);
+    color: var(--fg, #d0d0d0);
+    font-family: 'Inter', sans-serif;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}

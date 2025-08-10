@@ -1,0 +1,64 @@
+﻿
+@using Orderly.Shared.Dtos
+
+@namespace Orderly.Client.Components
+
+<link rel="stylesheet" href="css/modal.css" />
+
+@if (IsVisible && OrderToView is not null)
+{
+    <div class="modal-backdrop">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3 class="user-select-none">Order Details</h3>
+
+            <dl>
+                <dt class="user-select-none">Order ID:</dt>
+                <dd>@OrderToView.PublicId</dd>
+
+                <dt class="user-select-none">Customer:</dt>
+                <dd>@(OrderToView.Customer?.FullName ?? "(Deleted User)")</dd>
+
+                <dt class="user-select-none">Product:</dt>
+                <dd>@(OrderToView.Product?.Name ?? "(Deleted Product)")</dd>
+
+                <dt class="user-select-none">Status:</dt>
+                <dd>@OrderToView.Status</dd>
+
+                <dt class="user-select-none">Quantity:</dt>
+                <dd>@OrderToView.Quantity</dd>
+
+                <dt class="user-select-none">Price:</dt>
+                <dd>@OrderToView.Price.ToString("C")</dd>
+
+                <dt class="user-select-none">Notes:</dt>
+                <dd>@OrderToView.Notes</dd>
+
+                <dt class="user-select-none">Created At:</dt>
+                <dd>@OrderToView.CreatedAt.ToString("f")</dd>
+            </dl>
+
+            <div class="modal-actions">
+                <button class="modal-btn primary" @onclick="OnCloseClicked">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public OrderDto? OrderToView { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    public async Task OnCloseClicked()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+}

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	  <AssemblyName>Orderly.Client</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+
+	  <GenerateMvcApplicationPartsAssemblyAttributes>false</GenerateMvcApplicationPartsAssemblyAttributes>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Blazor-ApexCharts" Version="6.0.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
+	  <ProjectReference Include="..\Orderly.Shared\Orderly.Shared.csproj" />
+
+	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,257 @@
+﻿
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+
+<link rel="stylesheet" href="css/modal.css" />
+
+@if (IsVisible && OrderToManage is not null)
+{
+    <div class="modal-backdrop">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3>Manage Order</h3>
+
+            <dl>
+                <dt>Order ID:</dt>
+                <dd>@OrderToManage.PublicId</dd>
+
+                <dt>Product:</dt>
+                <dd>@(OrderToManage.Product?.Name ?? "(Deleted Product)")</dd>
+
+                <dt>@UserRole:</dt>
+                <dd>@GetOtherUserName()</dd>
+            </dl>
+
+            @if (CanEditOrders)
+            {
+                <div class="form-group" style="margin-top: 1.75rem;">
+                    <label for="status-select" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Status:</label>
+                    <select id="status-select" @bind="EditableOrder.Status" disabled="@(!IsStatusModifiable())">
+                        @foreach (var status in StatusOptions)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </select>
+                </div>
+            }
+            else if (CanCancelOrders)
+            {
+                <div class="form-group" style="margin-top: 2rem;">
+                    <p style="color: var(--fg); font-size: 0.95rem;">
+                        Are you sure you want to cancel this order?
+                    </p>
+                </div>
+            }
+
+            <div class="modal-actions">
+                <button class="modal-btn cancel" @onclick="OnCloseClicked">Close</button>
+
+                @if (CanEditOrders)
+                {
+                    <button class="modal-btn primary" @onclick="OnEditClicked" disabled="@(!CanSubmitEdit())">
+                        Save
+                    </button>
+                }
+                else if (CanCancelOrders)
+                {
+                    <button class="modal-btn danger" @onclick="OnCancelClicked" disabled="@(!CanSubmitCancel())">Cancel Order</button>
+                }
+            </div>
+
+            @*
+                Let the user know if they aren't able to edit the order
+            *@
+
+            @if (CanEditOrders || CanCancelOrders)
+            {
+                if (!IsStatusModifiable())
+                {
+                    <div class="mt-4 alert alert-danger" role="alert">This order can't be modified because it has either been complete or cancelled.</div>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public string UserRole { get; set; } = "Customer";
+
+    [Parameter]
+    public bool CanEditOrders { get; set; } = false;
+
+    [Parameter]
+    public bool CanCancelOrders { get; set; } = false;
+
+    [Parameter]
+    public OrderDto? OrderToManage { get; set; }
+
+    [Parameter]
+    public EventCallback OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    ///  <summary>
+    ///     Editable order, used to write changes to before the user
+    ///     clicks save
+    /// </summary>
+    private OrderDto EditableOrder = new();
+
+    private readonly List<string> StatusOptions = new()
+    {
+        "Pending",
+        "Processing",
+        "Complete",
+        "Cancelled"
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (OrderToManage is not null)
+        {
+            EditableOrder = new OrderDto
+            {
+                PublicId = OrderToManage.PublicId,
+                Customer = OrderToManage.Customer,
+                Product = OrderToManage.Product,
+                Status = OrderToManage.Status,
+                Quantity = OrderToManage.Quantity,
+                Price = OrderToManage.Price,
+                Notes = OrderToManage.Notes,
+                CreatedAt = OrderToManage.CreatedAt,
+                IsDeleted = OrderToManage.IsDeleted
+            };
+        }
+    }
+
+    private async Task OnEditClicked()
+    {
+        if (OrderToManage is null || !IsStatusModifiable() || !CanSubmitEdit())
+        {
+            return;
+        }
+
+        // Submit the edit
+
+        await _OrderService.UpdateOrderAsync(EditableOrder);
+
+        // Fire edit then close event
+
+        await OnEdit.InvokeAsync();
+
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnCancelClicked()
+    {
+        if (OrderToManage is null || !IsStatusModifiable() || !CanSubmitCancel())
+        {
+            return;
+        }
+
+        // Set the order status to cancelled
+
+        EditableOrder.Status = "Cancelled";
+
+        await _OrderService.UpdateOrderAsync(EditableOrder);
+
+        // Fire cancel then close event
+
+        await OnCancel.InvokeAsync();
+
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnCloseClicked()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private bool CanSubmitEdit()
+    {
+        // Can't submit if the status isn't modifiable
+
+        if (OrderToManage is null || !IsStatusModifiable())
+        {
+            return false;
+        }
+
+        // Edit can only be submitted if the status is different
+
+        if (OrderToManage.Status == EditableOrder.Status)
+        {
+            return false;
+        }
+
+        // Edit can be submitted
+
+        return true;
+    }
+
+    private bool CanSubmitCancel()
+    {
+        // Can't submit if the status isn't modifiable
+
+        if (OrderToManage is null || !IsStatusModifiable())
+        {
+            return false;
+        }
+
+        // Cancel can be submitted
+
+        return true;
+    }
+
+    private bool IsStatusModifiable()
+    {
+        if (OrderToManage is null)
+        {
+            return false;
+        }
+
+        // Status changes can only be submitted if the original status isn't
+        // either complete or canceled
+
+        if (OrderToManage.Status == "Complete" || OrderToManage.Status == "Cancelled")
+        {
+            return false;
+        }
+
+        // Status change can be submitted
+
+        return true;
+    }
+
+    private string GetOtherUserName()
+    {
+        if (UserRole == "Seller")
+        {
+            return OrderToManage?.Customer?.FullName ?? "(Deleted User)";
+        }
+        else
+        {
+            return OrderToManage?.Product?.Owner?.FullName ?? "(Deleted User)";
+        }
+    }
+
+    private string GetDisplayStyle()
+    {
+        if (OrderToManage is not null)
+        {
+            return "display:flex;";
+        }
+        else
+        {
+            return "display:none;";
+        }
+    }
+
+    [Inject]
+    private OrderService _OrderService { get; set; }
+}

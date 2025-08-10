@@ -1,0 +1,529 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+@using System.Globalization
+@using Orderly.Shared.Helpers
+
+<link rel="stylesheet" href="css/table.css" />
+
+<style>
+    :root {
+        --table-height: calc((var(--row-height) * @(@PageSize)) + var(--col-height) + 2px);
+    }
+
+    .table-wrapper {
+        height: var(--table-height);
+    }
+
+    .order-table tr {
+        cursor: pointer;
+    }
+
+    .order-table td.public-id {
+        color: var(--primary) !important;
+    }
+
+    .order-table th.public-id,
+    .order-table td.public-id {
+        width: 10%;
+    }
+
+    .order-table th.other-user,
+    .order-table td.other-user {
+        width: 25%;
+    }
+
+    .order-table th.product-name,
+    .order-table td.product-name {
+        width: 20%;
+    }
+
+    .order-table th.status,
+    .order-table td.status {
+        width: 15%;
+    }
+
+    .order-table th.quantity,
+    .order-table td.quantity {
+        width: 10%;
+    }
+
+    .order-table th.price,
+    .order-table td.price {
+        width: 10%;
+    }
+
+    .order-table th.created-at,
+    .order-table td.created-at {
+        width: 10%;
+    }
+
+    .order-table th.actions,
+    .order-table td.actions {
+        width: 10%;
+    }
+</style>
+
+<div class="table-container order-table-container">
+    <div class="filters">
+        <input type="text"
+               placeholder="Search orders..."
+               @oninput="OnSearchInput"
+               value="@SearchText"
+               class="search-input"
+               aria-label="Search orders" />
+
+        <select @bind="SelectedStatus" class="category-select form-select" aria-label="Filter by status">
+            <option value="">All Statuses</option>
+            @foreach (var cat in Statuses)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+
+    <div class="table-wrapper order-table-wrapper no-scroll">
+        <table class="shared-table order-table table-stripped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" class="public-id">ID</th>
+
+                    @foreach (var col in Columns)
+                    {
+                        <th @onclick="@(() => SortBy(col.Property))" class="sortable @(GetSortClass(col.Property)) @(GetColumnClass(col.Property))" scope="col">
+                            @col.Title
+                            <span class="sort-indicator">@GetSortIndicator(col.Property)</span>
+                        </th>
+                    }
+
+                    @*
+                        Add management controls for orders
+                    *@
+
+                    @if (DisplayActionsColumn())
+                    {
+                        <th class="actions-header actions">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsLoading)
+                {
+                    <tr><td colspan="@ColSpanCount" class="loading-cell">Loading...</td></tr>
+                }
+                else if (!PagedOrders.Any())
+                {
+                    <tr><td colspan="@ColSpanCount + 1" class="loading-cell">No orders found.</td></tr>
+                }
+                else
+                {
+                    @foreach (var order in PagedOrders)
+                    {
+                        <tr @ondblclick="() => OpenViewModal(order)" @ontouchstart="() => OpenViewModal(order)">
+                            <td class="public-id"><strong>#@order.PublicId</strong></td>
+                            <td class="other-user">@GetOtherUserName(order)</td>
+                            <td class="product-name">@(order.Product?.Name ?? "(Deleted Product)")</td>
+                            <td class="status">@order.Status</td>
+                            <td class="quantity">@order.Quantity</td>
+                            <td class="price">@order.Price.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td class="created-at">@DateTimeHelper.ToReadableDateShort(order.CreatedAt)</td>
+
+                            @*
+                                Display actions
+                            *@
+
+                            @if (DisplayActionsColumn())
+                            {
+                                <td class="actions-cell actions">
+                                    @*
+                                        Display management controls for this order
+                                    *@
+
+                                    @if (CanEditOrders || CanCancelOrders)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenManageModal(order)" title="Manage">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    }
+
+                                    @*
+                                        Display chat link
+                                    *@
+
+                                    @if (CanViewChat)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToChat(order)" title="View Chat">
+                                            <i class="bi bi-chat-fill"></i>
+                                        </button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+
+                    @for (int i = PagedOrders.Count(); i < PageSize; i++)
+                    {
+                        <tr><td colspan="@Columns.Count + 1" class="filler-row"></td></tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        <button class="page-btn" disabled="@IsFirstPage" @onclick="PreviousPage">
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>
+
+        <span class="page-status">Page @Page of @TotalPages</span>
+
+        <button class="page-btn" disabled="@IsLastPage" @onclick="NextPage">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Order View Modal -->
+
+<OrderViewModal IsVisible="@IsViewModalVisible"
+                OrderToView="@SelectedOrder"
+                OnClose="@CloseViewModal" />
+
+<!-- Order Manage Modal -->
+
+<OrderManageModal IsVisible="@IsManageModalVisible"
+                OrderToManage="@SelectedOrder"
+                UserRole="@UserRole"
+                CanEditOrders="@CanEditOrders"
+                CanCancelOrders="@CanCancelOrders"
+                OnEdit="@CloseManageModal"
+                OnCancel="@CloseManageModal"
+                OnClose="@CloseManageModal" />
+
+@code {
+    [Parameter]
+    public string UserRole { get; set; } = "Customer";
+
+    [Parameter]
+    public bool CanEditOrders { get; set; } = false;
+
+    [Parameter]
+    public bool CanCancelOrders { get; set; } = false;
+
+    [Parameter]
+    public bool CanViewChat { get; set; } = false;
+
+    private OrderDto? SelectedOrder { get; set; }
+
+    private bool IsViewModalVisible = false;
+    private bool IsManageModalVisible = false;
+
+    private List<OrderDto> Orders = new();
+
+    private int Page = 1;
+    private const int PageSize = 10;
+
+    private string SearchText = string.Empty;
+    private string? SelectedStatus;
+    private string SortColumn = nameof(OrderDto.CreatedAt);
+    private bool SortAscending = false;
+
+    private bool IsLoading = true;
+
+    private IEnumerable<OrderDto> FilteredOrders
+    {
+        get
+        {
+            return Orders
+                .Where(o => string.IsNullOrWhiteSpace(SearchText)
+                    || (o.Product is not null && o.Product.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                    || GetOtherUserName(o).Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .Where(o => string.IsNullOrWhiteSpace(SelectedStatus) || o.Status == SelectedStatus)
+                .OrderByDynamic(SortColumn, SortAscending);
+        }
+    }
+
+    private IEnumerable<OrderDto> PagedOrders
+    {
+        get
+        {
+            return FilteredOrders
+                .Skip((Page - 1) * PageSize)
+                .Take(PageSize);
+        }
+    }
+
+    private int ColSpanCount
+    {
+        get
+        {
+            return Columns.Count + 1 + ((CanEditOrders || CanCancelOrders) ? 1 : 0);
+        }
+    }
+
+    private List<(string Title, string Property)> Columns = new()
+    {
+        ("Customer", "Customer.FullName"),
+        ("Product", "Product.Name"),
+        ("Status", nameof(OrderDto.Status)),
+        ("Quantity", nameof(OrderDto.Quantity)),
+        ("Price", nameof(OrderDto.Price)),
+        ("Created", nameof(OrderDto.CreatedAt)),
+    };
+
+    private List<string> Statuses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchOrders();
+
+        Statuses = Orders
+            .Select(o => o.Status)
+            .Distinct()
+            .ToList();
+
+        await ConnectSignalR();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Columns = new List<(string Title, string Property)>();
+
+        if (UserRole == "Seller")
+        {
+            Columns.Add(("Customer", "Customer.FullName"));
+        }
+        else
+        {
+            Columns.Add(("Seller", "Product.Owner.FullName"));
+        }
+
+        Columns.AddRange(new List<(string Title, string Property)>
+        {
+            ("Product", "Product.Name"),
+            ("Status", nameof(OrderDto.Status)),
+            ("Quantity", nameof(OrderDto.Quantity)),
+            ("Price", nameof(OrderDto.Price)),
+            ("Created", nameof(OrderDto.CreatedAt)),
+        });
+    }
+
+    private async Task FetchOrders()
+    {
+        IsLoading = true;
+
+        if (UserRole == "Seller")
+        {
+            Orders = await _OrderService.GetReceivedOrdersAsync();
+        }
+        else
+        {
+            Orders = await _OrderService.GetPlacedOrdersAsync();
+        }
+
+        IsLoading = false;
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        // Reset page number and set search text
+
+        Page = 1;
+
+        SearchText = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private string GetOtherUserName(OrderDto order)
+    {
+        if (UserRole == "Seller")
+        {
+            return order.Customer?.FullName ?? "(Deleted User)";
+        }
+        else
+        {
+            return order.Product?.Owner?.FullName ?? "(Deleted User)";
+        }
+    }
+
+    private void NavigateToChat(OrderDto order)
+    {
+        _NavigationManager.NavigateTo($"/dashboard/chat/order/{order.PublicId}");
+    }
+
+    private string GetColumnClass(string columnName)
+    {
+        return columnName switch
+        {
+            nameof(OrderDto.PublicId) => "public-id",
+            nameof(OrderDto.Status) => "status",
+            nameof(OrderDto.Quantity) => "quantity",
+            nameof(OrderDto.Price) => "price",
+            nameof(OrderDto.CreatedAt) => "created-at",
+            "Product.Name" => "product-name",
+            "Customer.Name" => "customer-name",
+            _ => "auto"
+        };
+    }
+
+    private bool DisplayActionsColumn()
+    {
+        return CanEditOrders || CanCancelOrders || CanViewChat;
+    }
+
+    // ***** Sorting ***** //
+
+    private string GetSortClass(string columnName)
+    {
+        if (columnName != SortColumn)
+            return string.Empty;
+
+        return SortAscending ? "sort-asc" : "sort-desc";
+    }
+
+    string GetSortIndicator(string column)
+    {
+        if (SortColumn != column) return "";
+        return SortAscending ? "▲" : "▼";
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+            SortAscending = !SortAscending;
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+    }
+
+    // ***** Paging ***** //
+
+    private bool IsFirstPage
+    {
+        get
+        {
+            return Page <= 1;
+        }
+    }
+
+    private bool IsLastPage
+    {
+        get
+        {
+            return Page >= TotalPages;
+        }
+    }
+
+    private int TotalPages
+    {
+        get
+        {
+            return (int)Math.Ceiling((double)FilteredOrders.Count() / PageSize);
+        }
+    }
+
+    private void NextPage()
+    {
+        if (!IsLastPage)
+        {
+            Page++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (!IsFirstPage)
+        {
+            Page--;
+        }
+    }
+
+    // ***** SignalR ***** //
+
+    private HubConnection? _HubConnection;
+
+    private async Task ConnectSignalR()
+    {
+        _HubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri("/orderhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _HubConnection.On<OrderDto>("OrderCreated", order =>
+        {
+            // Add this order to the table if it doesn't exist
+
+            if (!Orders.Any(o => o.PublicId == order.PublicId))
+            {
+                Orders.Insert(0, order);
+
+                StateHasChanged();
+            }
+        });
+
+        _HubConnection.On<OrderDto>("OrderUpdated", order =>
+        {
+            // Update the order (this assumes it's already in the table)
+
+            int index = Orders.FindIndex(o => o.PublicId == order.PublicId);
+
+            if (index >= 0)
+            {
+                Orders[index] = order;
+
+                StateHasChanged();
+            }
+        });
+
+        _HubConnection.On<string>("OrderDeleted", orderPublicId =>
+        {
+            // Delete the order from the table if it exists
+
+            OrderDto? order = Orders.FirstOrDefault(o => o.PublicId == orderPublicId);
+
+            if (order is not null)
+            {
+                Orders.Remove(order);
+
+                StateHasChanged();
+            }
+        });
+
+        await _HubConnection.StartAsync();
+    }
+
+    // ***** View Order Modal ***** //
+
+    private void OpenViewModal(OrderDto order)
+    {
+        SelectedOrder = order;
+        IsViewModalVisible = true;
+    }
+
+    private void CloseViewModal()
+    {
+        SelectedOrder = null;
+        IsViewModalVisible = false;
+    }
+
+    // ***** Manage Order Modal ***** //
+
+    private void OpenManageModal(OrderDto order)
+    {
+        SelectedOrder = order;
+        IsManageModalVisible = true;
+    }
+
+    private void CloseManageModal()
+    {
+        SelectedOrder = null;
+        IsManageModalVisible = false;
+    }
+
+    [Inject]
+    private OrderService _OrderService { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+}

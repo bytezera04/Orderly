@@ -1,0 +1,202 @@
+﻿
+@using Orderly.Client.Pages.Shared
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@using Orderly.Client.Services
+
+@page "/login"
+@namespace Orderly.Client.Pages
+@layout MainLayout
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Login - Orderly</PageTitle>
+
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin: 3rem auto;
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        color: var(--fg);
+    }
+
+    .tab-btns {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--fg);
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.3s ease;
+    }
+
+    .tab-btn.active {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+        padding: 0.5rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--fg);
+        transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    button.submit-btn {
+        background-color: var(--primary);
+        color: var(--fg);
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button.submit-btn:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .error-message {
+        color: #ff6b6b;
+        font-weight: 600;
+    }
+
+    .success-message {
+        color: #4caf50;
+        font-weight: 600;
+    }
+</style>
+
+<div class="auth-container">
+    @if (IsLogin)
+    {
+        <div class="tab-btns">
+            <button class="tab-btn active" @onclick="() => SetTab(true)">Sign In</button>
+            <button class="tab-btn" @onclick="() => SetTab(false)">Register</button>
+        </div>
+
+        <EditForm Model="@LoginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <input type="email" placeholder="Email" @bind="LoginModel.Email" />
+            <input type="password" placeholder="Password" @bind="LoginModel.Password" />
+            <button class="submit-btn" type="submit">Sign In</button>
+            @if (!string.IsNullOrEmpty(LoginError))
+            {
+                <p class="error-message">@LoginError</p>
+            }
+        </EditForm>
+    }
+    else
+    {
+        <div class="tab-btns">
+            <button class="tab-btn" @onclick="() => SetTab(true)">Sign In</button>
+            <button class="tab-btn active" @onclick="() => SetTab(false)">Register</button>
+        </div>
+
+        <EditForm Model="@RegisterModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <input type="text" placeholder="Full Name" @bind="RegisterModel.FullName" />
+            <input type="email" placeholder="Email" @bind="RegisterModel.Email" />
+            <input type="password" placeholder="Password" @bind="RegisterModel.Password" />
+            <input type="password" placeholder="Confirm Password" @bind="RegisterModel.ConfirmPassword" />
+            <button class="submit-btn" type="submit">Register</button>
+            @if (!string.IsNullOrEmpty(RegisterError))
+            {
+                <p class="error-message">@RegisterError</p>
+            }
+            @if (!string.IsNullOrEmpty(RegisterSuccess))
+            {
+                <p class="success-message">@RegisterSuccess</p>
+            }
+        </EditForm>
+    }
+</div>
+
+@code {
+    private bool IsLogin = true;
+
+    private LoginModel LoginModel = new();
+    private RegisterModel RegisterModel = new();
+
+    private string? LoginError;
+    private string? RegisterError;
+    private string? RegisterSuccess;
+
+    private void SetTab(bool loginTab)
+    {
+        IsLogin = loginTab;
+        LoginError = null;
+        RegisterError = null;
+        RegisterSuccess = null;
+    }
+
+    private async Task HandleLogin()
+    {
+        LoginError = null;
+        var success = await AuthService.LoginAsync(LoginModel);
+
+        if (success)
+        {
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            LoginError = "Invalid login credentials.";
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        RegisterError = null;
+        RegisterSuccess = null;
+
+        if (RegisterModel.Password != RegisterModel.ConfirmPassword)
+        {
+            RegisterError = "Passwords do not match.";
+            return;
+        }
+
+        var success = await AuthService.RegisterAsync(RegisterModel);
+
+        if (success)
+        {
+            RegisterSuccess = "Registration successful! You can now sign in.";
+            RegisterModel = new();
+        }
+        else
+        {
+            RegisterError = "Registration failed. Try again.";
+        }
+    }
+}

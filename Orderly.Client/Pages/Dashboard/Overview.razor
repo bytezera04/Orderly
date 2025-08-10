@@ -1,0 +1,954 @@
+﻿
+@using Orderly.Client.Components
+@using Orderly.Client.Pages.Shared
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using ApexCharts
+@using System.Text.Json.Serialization
+
+@page "/dashboard/overview"
+@namespace Orderly.Client.Pages.Dashboard
+@layout DashboardLayout
+
+@attribute [Authorize]
+
+<PageTitle>Overview - Orderly</PageTitle>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.48.0/dist/apexcharts.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<style>
+    .overview-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overview-container {
+        max-width: 1500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard-card {
+        max-width: 700px;
+        margin: 0;
+        padding: 0;
+        background-color: var(--nav-bg);
+        color: var(--fg) !important;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card > .dashboard-card-header,
+    .dashboard-card > .dashboard-card-footer {
+        flex-shrink: 0;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .dashboard-card > ul.list-group-flush {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin: 0;
+        padding: 0;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="light"] .dashboard-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-card-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--fg) !important;
+    }
+
+    .dashboard-card-header .badge {
+        background-color: var(--primary);
+        color: #fff;
+    }
+
+    .dashboard-list-item {
+        background-color: transparent;
+        border-color: var(--border);
+        display: flex;
+        justify-content: space-between;
+        color: var(--fg) !important;
+    }
+
+    .dashboard-list-item:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+        cursor: pointer;
+    }
+
+    .dashboard-list-item .text-muted {
+        color: var(--muted) !important;
+    }
+
+    .dashboard-card-footer {
+        height: 50px;
+        max-height: 50px;
+        min-height: 50px;
+        padding: 0.75rem 1.25rem;
+        border-top: 1px solid var(--border);
+        text-align: right;
+        color: var(--fg) !important;
+    }
+
+    .dashboard-card-footer .nav-link {
+        padding: 0.25rem 0.5rem;
+        line-height: 1.25;
+        height: auto;
+        min-height: unset;
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .dashboard-card-footer select {
+        max-width: 140px;
+    }
+
+    .dashboard-date-range {
+        background-color: var(--card-bg);
+        color: var(--fg);
+        border: 1px solid var(--border-color);
+        border-radius: 50px;
+        padding: 0.25rem 1.75rem 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='%23ccc' height='14' width='14' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path d='M5.25 7.5l4.75 4.75 4.75-4.75' /></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 0.8em;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .dashboard-date-range:hover {
+        background-color: var(--hover-bg);
+        border-color: var(--primary);
+    }
+
+    .dashboard-date-range:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.15rem rgba(var(--primary-rgb), 0.25);
+    }
+
+    /* Match dropdown menu to theme */
+    .dashboard-date-range option {
+        background-color: var(--nav-bg);
+        color: var(--fg);
+    }
+
+    /* For browsers that use the OS dropdown, we can force dark mode look on WebKit */
+    @@supports (-webkit-appearance: none) {
+        .dashboard-date-range option:checked,
+        .dashboard-date-range option:hover {
+            background-color: var(--primary);
+            color: var(--fg);
+        }
+    }
+</style>
+
+<div class="overview-wrapper">
+    <div class="overview-container m-5 row g-2">
+        <!-- Cards -->
+
+        <div class="row g-4">
+            <!-- Best Selling Products -->
+            <div class="col-12 col-md-6">
+                <div class="dashboard-card h-100">
+                    <div class="dashboard-card-header">
+                        <h5 class="mb-0">Best Selling Products</h5>
+                        <span class="badge">
+                            @Products.Count
+                        </span>
+                    </div>
+
+                    @if (Products.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (ProductDto product in BestSellingProducts)
+                            {
+                                <li class="list-group-item dashboard-list-item flex-column align-items-start"
+                                    @onclick="() => OpenProductViewModal(product)">
+
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span>@product.Name</span>
+                                        <span class="text-muted">@product.Sales sold</span>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        Stock: @product.Stock &nbsp;|&nbsp; Price: @product.Price.ToString("C")
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No products available</div>
+                    }
+
+                    <div class="dashboard-card-footer">
+                        <NavLink href="/dashboard/products"
+                                 class="nav-link btn btn-sm">
+                            View All
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Over Time Chart Card -->
+            <div class="col-12 col-md-6">
+                <div class="dashboard-card h-100 d-flex flex-column">
+                    <!-- Header -->
+                    <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Sales Over Time</h5>
+                        <span class="badge">@ReceivedOrders.Count</span>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="flex-grow-1 p-3">
+                        <div id="salesChart" style="width: 100%; height: 300px;"></div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="dashboard-card-footer d-flex justify-content-between align-items-center">
+                        <!-- Filter label + select -->
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-range" style="color: var(--fg);"></i>
+                            <label for="dateRangeSelect" class="mb-0" style="color: var(--fg); font-size: 0.85rem;">
+                                Filter by date:
+                            </label>
+                            <select id="dateRangeSelect" class="dashboard-date-range">
+                                @foreach (var range in DateRanges)
+                                {
+                                    <option value="@range" selected="@(SelectedDateRange == range)">
+                                        @range
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Total revenue -->
+                        <div class="fw-bold" style="color: var(--fg);">
+                            Total Revenue: @TotalRevenue.ToString("C")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Received Orders -->
+            <div class="col-12 col-md-6">
+                <div class="dashboard-card h-100">
+                    <div class="dashboard-card-header">
+                        <h5 class="mb-0">Received Orders</h5>
+                        <span class="badge">
+                            @ReceivedOrders.Count
+                        </span>
+                    </div>
+
+                    @if (ReceivedOrders.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (OrderDto order in MostRecentReceivedOrders)
+                            {
+                                <li class="list-group-item dashboard-list-item flex-column align-items-start"
+                                    @onclick="() => OpenOrderViewModal(order)">
+
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span>@order.ProductDisplayName</span>
+                                        <span class="text-muted">@DateTimeHelper.ToReadableDateShort(order.CreatedAt)</span>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        Customer: @order.CustomerDisplayName &nbsp;|&nbsp; Qty: @order.Quantity &nbsp;|&nbsp; Total: @order.Price.ToString("C")
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No recent orders</div>
+                    }
+
+                    <div class="dashboard-card-footer">
+                        <NavLink href="/dashboard/orders/recieved"
+                                 class="nav-link btn btn-sm">
+                            View All
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Customers -->
+
+            <div class="col-12 col-md-6">
+                <div class="dashboard-card h-100">
+                    <div class="dashboard-card-header">
+                        <h5 class="mb-0">Top Customers</h5>
+                        <span class="badge">@TopCustomers.Count</span>
+                    </div>
+
+                    @if (TopCustomers.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var customer in TopCustomers)
+                            {
+                                <li class="list-group-item dashboard-list-item flex-column align-items-start">
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span>@customer.Name</span>
+                                        <span class="text-muted">@customer.TotalOrders orders</span>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        Total Spent: @customer.TotalSpent.ToString("C")
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No customer data available</div>
+                    }
+
+                    <div class="dashboard-card-footer">
+                        <NavLink href="/dashboard/orders/received"
+                                 class="nav-link btn btn-sm">
+                            View All
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product View Modal -->
+
+<ProductViewModal IsVisible="@IsProductViewModalVisible"
+                  ProductToView="@SelectedProduct"
+                  OnClose="@CloseProductViewModal" />
+
+<!-- Order View Modal -->
+
+<OrderViewModal IsVisible="@IsOrderViewModalVisible"
+                OrderToView="@SelectedOrder"
+                OnClose="@CloseOrderViewModal" />
+
+<script>
+    window.renderSalesChart = function (salesData, xMin, xMax, theme) {
+        var isDark = theme === 'dark';
+
+        var options = {
+            chart: {
+                type: 'line',
+                height: 300,
+                zoom: {
+                    enabled: true,
+                    type: 'x',
+                    autoScaleYaxis: true,
+                },
+                toolbar: {
+                    autoSelected: 'zoom'
+                }
+            },
+            series: [{
+                name: 'Revenue',
+                data: salesData
+            }],
+            xaxis: {
+                type: 'datetime',
+                min: xMin,
+                max: xMax,
+            },
+            tooltip: {
+                enabled: true,
+                style: {
+                    fontSize: '14px',
+                    fontFamily: 'Arial, sans-serif',
+                    color: 'var(--fg)',          // Text color from your theme
+                },
+                theme: 'dark', // keep it for basic dark mode behavior, but we override colors below
+                onDatasetHover: {
+                    highlightDataSeries: true,
+                },
+                marker: {
+                    show: true,
+                },
+                background: 'var(--nav-bg)',     // Tooltip background color
+                borderColor: 'var(--primary)',   // Tooltip border color
+                borderWidth: 1,
+                shadow: {
+                    enabled: true,
+                    color: 'rgba(0,0,0,0.3)',
+                    top: 1,
+                    left: 1,
+                    blur: 3,
+                    opacity: 0.7,
+                },
+                y: {
+                    formatter: function (value, { dataPointIndex, w }) {
+                        var orders = w.config.series[0].data[dataPointIndex].orders;
+                        var formattedRevenue = new Intl.NumberFormat('en-GB', {
+                        style: 'currency',
+                        currency: 'GBP',
+                        }).format(value);
+                        return `${formattedRevenue}<br/>Orders: ${orders}`;
+                    },
+                    title: {
+                        formatter: () => ''
+                    }
+                }
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#salesChart"), options);
+        chart.render();
+    };
+</script>
+
+@code {
+    private HubConnection? _ProductHubConnection;
+    private HubConnection? _OrderHubConnection;
+
+    private UserDto? CurrentUser;
+
+    private List<ProductDto> Products = new();
+
+    private List<OrderDto> PlacedOrders = new();
+    private List<OrderDto> ReceivedOrders = new();
+
+    private ProductDto? SelectedProduct { get; set; }
+    private OrderDto? SelectedOrder { get; set; }
+
+    private bool IsProductViewModalVisible = false;
+    private bool IsOrderViewModalVisible = false;
+
+    private readonly List<string> DateRanges = new()
+    {
+        "24h",
+        "7d",
+        "1m",
+        "3m",
+        "6m",
+        "1y",
+        "All Time"
+    };
+
+    private string SelectedDateRange = "1m";
+
+    private decimal TotalRevenue;
+
+    private List<SalesPoint> SalesData = new();
+
+    private List<ProductDto> BestSellingProducts
+    {
+        get
+        {
+            return Products
+                .OrderByDescending(p => p.Sales)
+                .Take(5)
+                .ToList();
+        }
+    }
+
+    private List<OrderDto> MostRecentReceivedOrders
+    {
+        get
+        {
+            return ReceivedOrders
+                .OrderByDescending(o => o.CreatedAt)
+                .Take(5)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load the initial data
+
+        CurrentUser = await _UserService.GetCurrentUser();
+
+        Products = await _ProductService.GetProductsAsync();
+
+        PlacedOrders = await _OrderService.GetPlacedOrdersAsync();
+        ReceivedOrders = await _OrderService.GetReceivedOrdersAsync();
+
+        //
+
+        await BuildSalesPoint();
+
+        //
+
+        BuildCustomerSummary();
+
+        // Connect with SignalR
+
+        await ConnectSignalR();
+    }
+
+    private async Task ConnectSignalR()
+    {
+        // Product Hub
+
+        _ProductHubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri("/producthub"))
+            .Build();
+
+        _ProductHubConnection.On<ProductDto>("ProductCreated", product =>
+        {
+            // Add this product to the table if it doesn't exist
+
+            if (!Products.Any(p => p.PublicId == product.PublicId))
+            {
+                Products.Insert(0, product);
+
+                StateHasChanged();
+            }
+        });
+
+        _ProductHubConnection.On<ProductDto>("ProductUpdated", product =>
+        {
+            // Update the product (this assumes it's already in the table)
+
+            int index = Products.FindIndex(p => p.PublicId == product.PublicId);
+
+            if (index >= 0)
+            {
+                Products[index] = product;
+
+                StateHasChanged();
+            }
+        });
+
+        _ProductHubConnection.On<string>("ProductDeleted", productPublicId =>
+        {
+            // Delete the product from the table if it exists
+
+            ProductDto? product = Products.FirstOrDefault(p => p.PublicId == productPublicId);
+
+            if (product is not null)
+            {
+                Products.Remove(product);
+
+                StateHasChanged();
+            }
+        });
+
+        await _ProductHubConnection.StartAsync();
+
+        // Order Hub
+
+        _OrderHubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri("/orderhub"))
+            .Build();
+
+        _OrderHubConnection.On<OrderDto>("OrderCreated", order =>
+        {
+            // Add this order to the table if it doesn't exist
+
+            if (order.IsReceivedOrder(CurrentUser?.PublicId))
+            {
+                // Add this received order if it doesn't exist
+
+                if (!ReceivedOrders.Any(o => o.PublicId == order.PublicId))
+                {
+                    ReceivedOrders.Insert(0, order);
+
+                    StateHasChanged();
+                }
+            }
+            else if (order.IsPlacedOrder(CurrentUser?.PublicId))
+            {
+                // Add this placed order if it doesn't exist
+
+                if (!PlacedOrders.Any(o => o.PublicId == order.PublicId))
+                {
+                    PlacedOrders.Insert(0, order);
+
+                    StateHasChanged();
+                }
+            }
+        });
+
+        _OrderHubConnection.On<OrderDto>("OrderUpdated", order =>
+        {
+            // Update the order (this assumes it's already in the table)
+
+            if (order.IsReceivedOrder(CurrentUser?.PublicId))
+            {
+                // Update this received order
+
+                int index = ReceivedOrders.FindIndex(o => o.PublicId == order.PublicId);
+
+                if (index >= 0)
+                {
+                    ReceivedOrders[index] = order;
+
+                    StateHasChanged();
+                }
+            }
+            else if (order.IsPlacedOrder(CurrentUser?.PublicId))
+            {
+                // Update this placed order
+
+                int index = PlacedOrders.FindIndex(o => o.PublicId == order.PublicId);
+
+                if (index >= 0)
+                {
+                    PlacedOrders[index] = order;
+
+                    StateHasChanged();
+                }
+            }
+        });
+
+        _OrderHubConnection.On<string>("OrderDeleted", orderPublicId =>
+        {
+            // Delete the order from the received orders
+
+            OrderDto? recvOrder = ReceivedOrders.FirstOrDefault(o => o.PublicId == orderPublicId);
+
+            if (recvOrder is not null)
+            {
+                ReceivedOrders.Remove(recvOrder);
+
+                StateHasChanged();
+            }
+
+            // Delete the order from the placed orders
+
+            OrderDto? placedOrder = PlacedOrders.FirstOrDefault(o => o.PublicId == orderPublicId);
+
+            if (placedOrder is not null)
+            {
+                PlacedOrders.Remove(placedOrder);
+
+                StateHasChanged();
+            }
+        });
+
+        await _OrderHubConnection.StartAsync();
+    }
+
+    private void UpdateOrderList(List<OrderDto> list, OrderDto order)
+    {
+        var existing = list.FirstOrDefault(o => o.PublicId == order.PublicId);
+
+        if (existing is null)
+        {
+            // This is an order not in the list, this means this is
+            // either a new order or an old order that was updated
+
+            list.Insert(0, order);
+
+            // Maintain 5 preview items
+
+            if (list.Count > 5)
+            {
+                list.RemoveAt(list.Count - 1);
+            }
+        }
+        else
+        {
+            // This is an order in the list, this means this order is
+            // updated
+
+            existing.Status = order.Status;
+            existing.IsDeleted = order.IsDeleted;
+        }
+    }
+
+    /* ===== Chart UI ===== */
+
+    private async Task BuildSalesPoint()
+    {
+        DateTime now = DateTime.UtcNow;
+        DateTime startDate = SelectedDateRange switch
+        {
+            "24h" => now.AddDays(-1),
+            "7d" => now.AddDays(-7),
+            "1m" => now.AddMonths(-1),
+            "3m" => now.AddMonths(-3),
+            "6m" => now.AddMonths(-6),
+            "1y" => now.AddYears(-1),
+            _ => DateTime.MinValue // All Time
+        };
+
+        var filteredOrders = ReceivedOrders
+            .Where(o => o.CreatedAt >= startDate)
+            .OrderBy(o => o.CreatedAt)
+            .ToList();
+
+        // Decide grouping size based on range
+        var points = new List<SalesPoint>();
+
+        // Calculate the total revenue
+
+        TotalRevenue = filteredOrders
+            .Sum(o => o.Price);
+
+        // Build the sales data
+
+        BuildSalesData(startDate, now, SelectedDateRange, filteredOrders);
+
+        //
+
+        var dateTimes = SalesData.Select(sp => sp.X).ToList();
+
+        DateTime minDate = dateTimes.Min();
+        DateTime maxDate = dateTimes.Max();
+
+        var xMin = new DateTimeOffset(minDate).ToUnixTimeMilliseconds();
+        var xMax = new DateTimeOffset(maxDate).ToUnixTimeMilliseconds();
+
+        // Invoke JS (convert SalesData to use ISO string for the chart library)
+
+        await JS.InvokeVoidAsync("renderSalesChart", SalesData
+            .Select(sp => new
+            {
+                x = sp.X.ToString("o"),
+                y = sp.Y,
+                orders = sp.Orders
+            }),
+            xMin,
+            xMax
+        );
+    }
+
+    private void BuildSalesData(DateTime startDate, DateTime now, string SelectedDateRange, List<OrderDto> filteredOrders)
+    {
+        SalesData = SelectedDateRange switch
+        {
+            "24h" => GroupByFixedBuckets(
+                filteredOrders,
+                startDate,
+                now,
+                buckets: 24,
+                getBucketLabel: dt => dt.ToString("HH:mm"),
+                getBucketKey: o => o.CreatedAt.Date.AddHours(o.CreatedAt.Hour)
+            ),
+
+            "7d" => GroupByFixedBuckets(
+                filteredOrders,
+                startDate,
+                now,
+                buckets: 7,
+                getBucketLabel: dt => dt.ToString("MMM dd"),
+                getBucketKey: o => o.CreatedAt.Date
+            ),
+
+            "1m" => GroupByFixedBuckets(
+                filteredOrders,
+                startDate,
+                now,
+                buckets: 10,
+                getBucketLabel: dt => dt.ToString("MMM dd"),
+                getBucketKey: o =>
+                {
+                    // Bucket key = startDate + bucket index * 3 days
+                    int daysOffset = (o.CreatedAt.Date - startDate.Date).Days;
+                    int bucketIndex = daysOffset / 3;
+                    return startDate.Date.AddDays(bucketIndex * 3);
+                }
+            ),
+
+            _ => GroupByFixedBuckets(
+                filteredOrders,
+                startDate,
+                now,
+                buckets: 12,
+                getBucketLabel: dt => dt.ToString("MMM yyyy"),
+                getBucketKey: o => new DateTime(o.CreatedAt.Year, o.CreatedAt.Month, 1)
+            )
+        };
+    }
+
+    private List<SalesPoint> GroupByFixedBuckets(
+        List<OrderDto> orders,
+        DateTime start,
+        DateTime end,
+        int buckets,
+        Func<DateTime, string> getBucketLabel,
+        Func<OrderDto, DateTime> getBucketKey
+    ) {
+        var bucketList = new List<SalesPoint>(buckets);
+
+        TimeSpan totalSpan = end - start;
+        long ticksPerBucket = totalSpan.Ticks / buckets;
+
+        for (int i = 0; i < buckets; i++)
+        {
+            var bucketStart = start.AddTicks(ticksPerBucket * i);
+            var bucketEnd = (i == buckets - 1) ? end : start.AddTicks(ticksPerBucket * (i + 1));
+
+            // Find orders that belong to this bucket using getBucketKey projection
+            var bucketOrders = orders.Where(o =>
+            {
+                var key = getBucketKey(o);
+                return key >= bucketStart && key < bucketEnd;
+            }).ToList();
+
+            bucketList.Add(new SalesPoint
+            {
+                X = bucketStart,
+                Y = bucketOrders.Sum(o => o.Price * o.Quantity),
+                Orders = bucketOrders.Count
+            });
+        }
+
+        return bucketList;
+    }
+
+    /* ===== Customer Summary ===== */
+
+    private List<CustomerSummary> CustomerSummaries { get; set; } = new();
+
+    private List<CustomerSummary> TopCustomers
+    {
+        get
+        {
+            return CustomerSummaries
+                .OrderByDescending(cs => cs.TotalSpent)
+                .Take(5)
+                .ToList();
+        }
+    }
+
+    private void BuildCustomerSummary()
+    {
+        CustomerSummaries.Clear();
+
+        CustomerSummaries = ReceivedOrders
+            .Where(o => o.Customer is not null)
+            .GroupBy(o => o.CustomerDisplayName)
+            .Select(g => new CustomerSummary
+                {
+                    Name = g.Key,
+                    TotalOrders = g.Count(),
+                    TotalSpent = g.Sum(o => o.Price)
+                })
+            .ToList();
+    }
+
+    private void SetDateRange(string range)
+    {
+        SelectedDateRange = range;
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private void NavigateToProducts()
+    {
+        _NavigationManager.NavigateTo("/dashboard/products");
+    }
+
+    private void NavigateToPlacedOrders()
+    {
+        _NavigationManager.NavigateTo("/dashboard/orders/placed");
+    }
+
+    private void NavigateToReceivedOrders()
+    {
+        _NavigationManager.NavigateTo("/dashboard/orders/received");
+    }
+
+    private void OpenProductViewModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsProductViewModalVisible = true;
+    }
+
+    private void CloseProductViewModal()
+    {
+        SelectedProduct = null;
+        IsProductViewModalVisible = false;
+    }
+
+    private void OpenOrderViewModal(OrderDto order)
+    {
+        SelectedOrder = order;
+        IsOrderViewModalVisible = true;
+    }
+
+    private void CloseOrderViewModal()
+    {
+        SelectedOrder = null;
+        IsOrderViewModalVisible = false;
+    }
+
+    private async ValueTask DisposeAsync()
+    {
+        if (_ProductHubConnection is not null)
+        {
+            await _ProductHubConnection.DisposeAsync();
+        }
+
+        if (_OrderHubConnection is not null)
+        {
+            await _OrderHubConnection.DisposeAsync();
+        }
+    }
+
+    public class CustomerSummary
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public int TotalOrders { get; set; } = 0;
+
+        public decimal TotalSpent { get; set; } = 0;
+    }
+
+    public class SalesPoint
+    {
+        [JsonPropertyName("x")]
+        public DateTime X { get; set; }  // date or label
+        [JsonPropertyName("y")]
+        public decimal Y { get; set; } // revenue
+        [JsonPropertyName("orders")]
+        public int Orders { get; set; } // extra info for tooltip
+    }
+
+    [Inject]
+    private UserService _UserService { get; set; }
+
+    [Inject]
+    private ProductService _ProductService { get; set; }
+
+    [Inject]
+    private OrderService _OrderService { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
+}

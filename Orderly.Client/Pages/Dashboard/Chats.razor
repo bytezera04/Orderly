@@ -1,0 +1,379 @@
+﻿
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using Orderly.Client.Pages.Shared
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+
+@page "/dashboard/chats"
+@namespace Orderly.Client.Pages.Dashboard
+@layout DashboardLayout
+
+@attribute [Authorize]
+
+<PageTitle>Chats - Orderly</PageTitle>
+
+<style>
+    .chats-page-container {
+        width: 80%;
+        max-width: 1100px;
+        min-width: 320px;
+        margin: 2rem auto;
+        padding: 1rem 1.25rem;
+        color: var(--fg);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg);
+    }
+
+    .search-filter-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    @@media (max-width: 575.98px) {
+        .search-filter-row {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+    }
+
+    .chat-search-input {
+        flex: 1 1 350px;
+        min-width: 0;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        background-color: var(--nav-bg);
+        color: var(--fg);
+        box-shadow: none;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .chat-search-input::placeholder {
+        color: var(--muted);
+    }
+
+    .chat-search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 8px var(--primary);
+    }
+
+    .filter-select-wrapper {
+        position: relative;
+        min-width: 180px;
+        flex-shrink: 0;
+    }
+
+    .filter-select-label {
+        position: absolute;
+        top: -0.75rem;
+        left: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted);
+        user-select: none;
+        background: var(--nav-bg);
+        padding: 0 0.25rem;
+    }
+
+    .chat-filter-select {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        background-color: var(--nav-bg);
+        color: var(--fg);
+        appearance: none;
+        cursor: pointer;
+        box-shadow: none;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .chat-filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 8px var(--primary);
+    }
+
+    .chat-filter-select::-ms-expand {
+        display: none;
+    }
+
+    .filter-select-wrapper::after {
+        content: "▼";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--muted);
+        font-size: 0.6rem;
+    }
+
+    .chat-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .chat-list-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        background-color: var(--nav-bg);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        align-items: center;
+        min-height: 64px;
+    }
+
+    .chat-list-item:hover {
+        background-color: rgba(59, 130, 246, 0.15);
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    }
+
+    .chat-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background-color: var(--primary);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        user-select: none;
+        flex-shrink: 0;
+    }
+
+    .chat-text-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: var(--fg);
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .chat-name-context {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .chat-participant-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-context-label {
+        background-color: var(--primary);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.1rem 0.5rem;
+        border-radius: 10px;
+        user-select: none;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .chat-timestamp {
+        font-size: 0.8rem;
+        color: var(--muted);
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-width: 6.5ch;
+        text-align: right;
+    }
+
+    .chat-preview-message {
+        color: var(--muted);
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+
+<div class="chats-page-container">
+    <div class="search-filter-row">
+        <input type="search"
+               placeholder="Search chats..."
+               class="chat-search-input"
+               @bind="SearchText"
+               @bind:event="oninput" />
+
+        <div class="filter-select-wrapper">
+            <label for="chatContextFilter" class="filter-select-label">Filter by Context</label>
+            <select id="chatContextFilter" class="chat-filter-select" @bind="SelectedContextType">
+                <option value="">All Contexts</option>
+                @foreach (var ctx in ContextTypes)
+                {
+                    <option value="@ctx">@ctx</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <ul class="chat-list" role="list" aria-label="User chats">
+        @foreach (var chatPreview in FilteredChats)
+        {
+            <li class="chat-list-item user-select-none" tabindex="0" role="button" aria-pressed="false"
+                @onclick="@(() => OpenChat(chatPreview))">
+
+                <div class="chat-avatar" aria-hidden="true">
+                    @GetInitials(chatPreview.OtherParticipantDisplayName)
+                </div>
+                <div class="chat-text-container">
+                    <div class="chat-header">
+                        <div class="chat-name-context" title="@chatPreview.OtherParticipantDisplayName">
+                            <span class="chat-participant-name">@chatPreview.OtherParticipantDisplayName</span>
+                            @if (!string.IsNullOrWhiteSpace(chatPreview.ChatThread?.ContextType))
+                            {
+                                <span class="chat-context-label">@chatPreview.ChatThread.ContextType</span>
+                            }
+                        </div>
+                        <span class="chat-timestamp" aria-label="Last activity">@chatPreview.LastActivityAt.ToLocalTime().ToString("g")</span>
+                    </div>
+                    <div class="chat-preview-message" title="@chatPreview.PreviewMessage?.Content">
+                        @chatPreview.PreviewMessage?.Content
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private List<ChatThreadPreviewDto> ChatPreviews = new();
+
+    private string SearchText = string.Empty;
+
+    private string SelectedContextType = string.Empty;
+
+    private List<string> ContextTypes = new()
+    {
+        "Order"
+    };
+
+    private List<ChatThreadPreviewDto> FilteredChats
+    {
+        get
+        {
+            return ChatPreviews
+                .Where(cp => cp.OtherParticipant is not null && cp.ChatThread is not null)
+                .Where(cp => string.IsNullOrWhiteSpace(SearchText) || cp.OtherParticipant!.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .Where(cp => string.IsNullOrWhiteSpace(SelectedContextType) || cp.ChatThread!.ContextType.Equals(SelectedContextType, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(cp => cp.LastActivityAt)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ChatPreviews = await _ChatService.GetChatPreviews() ?? new();
+
+        // Connect to SignalR
+
+        await ConnectSignalR();
+    }
+
+    private void OpenChat(ChatThreadPreviewDto preview)
+    {
+        // Exit if no context public ID exists
+
+        if (preview.ContextPublicId is null)
+        {
+            return;
+        }
+
+        // Open order chat
+
+        if (preview.ChatThread?.ContextType == "Order")
+        {
+            _NavigationManager.NavigateTo($"/dashboard/chat/order/{preview.ContextPublicId}");
+        }
+    }
+
+    // ***** SignalR ***** //
+
+    private HubConnection _HubConnection { get; set; }
+
+    private async Task ConnectSignalR()
+    {
+        _HubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri($"/chathub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _HubConnection.On<Tuple<string, ChatMessageDto>>("MessageCreated", data =>
+        {
+            string chatPublicId = data.Item1;
+            ChatMessageDto message = data.Item2;
+
+            // Update the chat preview to use this preview message
+
+            foreach (ChatThreadPreviewDto preview in ChatPreviews.Where(cp => cp.ChatThread?.PublicId == chatPublicId))
+            {
+                preview.PreviewMessage = message;
+
+                StateHasChanged();
+            }
+        });
+
+
+        await _HubConnection.StartAsync();
+    }
+
+    // ***** Utils ***** //
+
+    private string GetInitials(string? username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return "?";
+        }
+
+        var parts = username.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1)
+        {
+            return parts[0].Substring(0, 1).ToUpper();
+        }
+
+        return string.Concat(parts[0][0], parts[1][0]).ToUpper();
+    }
+
+    [Inject]
+    private ChatService _ChatService {get;set;}
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+}
