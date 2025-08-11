@@ -210,12 +210,52 @@
             width: 100%;
             max-width: 650px;
             height: auto;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-card h5 {
+            font-size: 1rem;
+        }
+
+        .dashboard-card-header {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .dashboard-list-item {
+            height: auto;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .dashboard-card-footer {
+            height: 70px;
+            max-height: 70px;
+            min-height: 70px;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .dashboard-date-range {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem 0.25rem 0.5rem;
         }
     }
 </style>
 
 <div class="overview-wrapper mt-5 mb-5">
     <div class="overview-container row g-2 d-flex justify-center align-items-center">
+        @*
+            Welcome
+        *@
+
+        @if (CurrentUser is not null)
+        {
+            <div class="mb-4">
+                <h4 class="fw-bold" style="color: var(--fg);">
+                    Welcome, @CurrentUser.FullName!
+                </h4>
+            </div>
+        }
+
         @*
             Cards
         *@
@@ -296,7 +336,7 @@
                     <div class="dashboard-card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Sales Over Time</h5>
 
-                        <span class="badge">@ReceivedOrders.Count)</span>
+                        <span class="badge">@ReceivedOrders.Count</span>
                     </div>
 
                     <!-- Body -->
@@ -316,14 +356,11 @@
 
                     <!-- Footer -->
 
-                    <div class="dashboard-card-footer d-flex justify-content-between align-items-center">
+                    <div class="dashboard-card-footer d-flex flex-wrap justify-content-between align-items-center">
                         <!-- Date Range -->
 
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <i class="bi bi-calendar-range" style="color: var(--fg);"></i>
-                            <label for="dateRangeSelect" class="mb-0" style="color: var(--fg); font-size: 0.85rem;">
-                                Filter by date:
-                            </label>
                             <select id="dateRangeSelect" class="dashboard-date-range">
                                 @foreach (var range in DateRanges)
                                 {
@@ -336,7 +373,7 @@
 
                         <!-- Total Revenue -->
 
-                        <div class="fw-bold" style="color: var(--fg);">
+                        <div class="fw-bold total-revenue" style="color: var(--fg);">
                             Total Revenue: @TotalRevenue.ToString("C")
                         </div>
                     </div>
