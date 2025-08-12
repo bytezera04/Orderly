@@ -69,6 +69,8 @@ Engage in instant communication with other users via the integrated SignalR-powe
 
 ![Dashboard Chat](docs/dashboard_showcases/chats.png)
 
+---
+
 ### Public Marketplace
 Browse a catalogue of publicly created products, place orders and manage them within your dashboard.
 
