@@ -147,6 +147,9 @@ namespace Orderly.Server.Data
                 entity.Property(u => u.IsDeleted)
                     .IsRequired()
                     .HasDefaultValue(false);
+
+                entity.Property(p => p.IsSeeded)
+                    .IsRequired();
             });
 
             // Configure product tag table

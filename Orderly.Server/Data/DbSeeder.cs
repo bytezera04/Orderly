@@ -449,7 +449,8 @@ namespace Orderly.Server.Data
                         Price = prodData.Price,
                         Stock = Rnd.Next(0, 101), // Random stock 0-100
                         OwnerId = user.Id,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        IsSeeded = true
                     };
 
                     context.Products.Add(product);

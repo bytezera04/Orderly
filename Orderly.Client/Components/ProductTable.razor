@@ -4,7 +4,7 @@
 @using Orderly.Shared.Dtos
 @using Orderly.Shared.Helpers
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 @namespace Orderly.Client.Components
 
@@ -68,7 +68,11 @@
     }
 </style>
 
-<div class="table-container product-table-container">
+<div class="table-container product-table-container w-100">
+    @*
+        Filters
+    *@
+
     <div class="filters">
         <input type="text"
                placeholder="Search products..."
@@ -85,6 +89,10 @@
             }
         </select>
     </div>
+
+    @*
+        Main Table
+    *@
 
     <div class="table-wrapper product-table-wrapper no-scroll">
         <table class="table product-table table-striped table-hover">
@@ -113,6 +121,10 @@
                 </tr>
             </thead>
             <tbody>
+                @*
+                    Products
+                *@
+
                 @if (IsLoading)
                 {
                     <tr>
@@ -171,6 +183,10 @@
             </tbody>
         </table>
     </div>
+
+    @*
+        Pagination
+    *@
 
     <div class="pagination">
         <button class="btn btn-outline-secondary btn-sm" @onclick="PreviousPage" disabled="@IsFirstPage" aria-label="Previous page">Previous</button>
@@ -485,11 +501,22 @@
         return Task.CompletedTask;
     }
 
-    void IDisposable.Dispose()
+    // ***** Misc ***** //
+
+    public async ValueTask DisposeAsync()
     {
-        throw new NotImplementedException();
+        if (_HubConnection is not null)
+        {
+            await _HubConnection.StopAsync();
+            await _HubConnection.DisposeAsync();
+        }
     }
 
-    [Inject] ProductService _ProductService { get; set; }
-    [Inject] NavigationManager _NavigationManager { get; set; }
+    // ***** Injections ***** //
+
+    [Inject]
+    private ProductService _ProductService { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
 }

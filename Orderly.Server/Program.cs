@@ -51,6 +51,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<MarketplaceService>();
 
 builder.Services.AddScoped<ChatNotifier>();
 

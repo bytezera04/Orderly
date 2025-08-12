@@ -46,12 +46,32 @@
 
 <div class="product-content-wrapper m-4">
     <div class="product-content">
+        @*
+            Title
+        *@
+
         <div class="mb-4 d-flex flex-column">
             <div class="w-100 mb-4 d-flex justify-content-between align-items-center">
                 <h2 class="text-2xl font-bold text-[var(--fg)]">Manage Products</h2>
                 <button class="btn btn-primary" @onclick="ShowCreateModal">Add Product</button>
             </div>
         </div>
+
+        @*
+            Additional Messages
+        *@
+
+        @if (IsDemoMode())
+        {
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>
+                <span>This site is in <strong>demo mode</strong>. Products you create are only visible in your personal dashboard.</span>
+            </div>
+        }
+
+        @*
+            Product Table
+        *@
 
         <ProductTable CanEditProducts="true"
                       CanDeleteProducts="true" />
@@ -76,4 +96,12 @@
     {
         IsCreateProductModalVisible = false;
     }
+
+    private bool IsDemoMode()
+    {
+        return _Config.GetValue<bool>("DemoMode") is true;
+    }
+
+    [Inject]
+    private IConfiguration _Config { get; set; }
 }

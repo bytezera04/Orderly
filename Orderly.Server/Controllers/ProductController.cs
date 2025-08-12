@@ -103,7 +103,8 @@ namespace Orderly.Server.Controllers
                 Category = category,
                 Price = newProductDto.Price,
                 Stock = newProductDto.Stock,
-                OwnerId = userId
+                OwnerId = userId,
+                IsSeeded = false
             };
 
             await _ProductService.AddProductAsync(product, newProductDto.Tags);

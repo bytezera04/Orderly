@@ -1,5 +1,6 @@
 ﻿
 using Orderly.Shared.Dtos;
+using Orderly.Shared.Responses;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -41,14 +42,5 @@ namespace Orderly.Client.Services
                 return null;
             }
         }
-    }
-
-    public class MarketplaceResponse
-    {
-        [JsonPropertyName("products")]
-        public List<ProductDto> Products { get; set; }
-
-        [JsonPropertyName("totalCount")]
-        public int TotalCount { get; set; }
     }
 }

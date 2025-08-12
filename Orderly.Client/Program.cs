@@ -18,9 +18,11 @@ using var http = new HttpClient {
 
 using var stream = await http.GetStreamAsync("appsettings.json");
 
-builder.Configuration.AddJsonStream(stream);
+var config = new ConfigurationBuilder()
+    .AddJsonStream(stream)
+    .Build();
 
-builder.Services.AddSingleton(sp => builder.Configuration);
+builder.Services.AddSingleton<IConfiguration>(config);
 
 // Configure API base address
 

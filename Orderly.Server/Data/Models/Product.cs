@@ -47,6 +47,9 @@ namespace Orderly.Server.Data.Models
         [Required]
         public bool IsDeleted { get; set; } = false;
 
+        [Required]
+        public bool IsSeeded { get; set; }
+
         public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
 
         public ICollection<Order> Orders { get; set; } = new List<Order>();
