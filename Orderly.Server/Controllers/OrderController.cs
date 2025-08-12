@@ -86,9 +86,11 @@ namespace Orderly.Server.Controllers
                 Notes = request.Notes
             });
 
-            // Decrement the product stock
+            // Decrement the product stock, increment sales count
 
             product.Stock -= request.Quantity;
+
+            product.Sales += request.Quantity;
 
             await _ProductService.UpdateProductAsync(
                 product,
