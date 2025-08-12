@@ -1,0 +1,160 @@
+﻿@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Requests
+
+@namespace Orderly.Client.Components
+
+<link rel="stylesheet" href="css/modal.css" />
+
+<script src="js/formatting.js"></script>
+
+@if (IsVisible && ProductToOrder is not null)
+{
+    <div class="modal-backdrop" tabindex="-1">
+        <div class="modal-content" style="max-width: 520px;">
+            @*
+                Input
+            *@
+
+            <h3 id="orderModalTitle">Buy: @ProductToOrder.Name</h3>
+
+            <dl>
+                <dt>Price:</dt>
+                <dd>@ProductToOrder.Price.ToString("C")</dd>
+
+                <dt>Quantity:</dt>
+                <dd>
+                    <input type="number"
+                           min="1"
+                           max="@ProductToOrder.Stock"
+                           step="1"
+                           class="form-control"
+                           @bind-value="Quantity"
+                           @bind-value:event="oninput" />
+                </dd>
+
+                <dt>Notes:</dt>
+                <dd>
+                    <textarea rows="3" placeholder="Add order notes..." maxlength="250" @bind="Notes"></textarea>
+                </dd>
+
+                <dt>Total:</dt>
+                <dd><strong>@TotalPrice.ToString("C")</strong></dd>
+            </dl>
+
+            @*
+                Errors
+            *@
+
+            @if (ErrorMessages is not null && ErrorMessages.Any())
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in ErrorMessages)
+                    {
+                        <div>@error</div>
+                    }
+                </div>
+            }
+
+            @*
+                Actions
+            *@
+
+            <div class="modal-actions">
+                <button class="modal-btn cancel" @onclick="OnCancelClicked">Cancel</button>
+
+                <button class="modal-btn primary" @onclick="OnCreateClicked">Buy</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public ProductDto? ProductToOrder { get; set; }
+
+    [Parameter]
+    public EventCallback OnCreate { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private List<string>? ErrorMessages;
+
+    private int Quantity = 0;
+
+    private string Notes = string.Empty;
+
+    public decimal TotalPrice
+    {
+        get
+        {
+            return ProductToOrder is not null
+                       ? ProductToOrder.Price * Quantity
+                       : 0;
+        }
+    }
+
+    private bool CanPurchase
+    {
+        get
+        {
+            return ProductToOrder is not null
+                && ProductToOrder.Stock > Quantity;
+        }
+    }
+
+    private async Task OnCreateClicked()
+    {
+        if (ProductToOrder is null || !CanPurchase)
+        {
+            return;
+        }
+
+        ErrorMessages = null;
+
+        // Create the order
+
+        var (success, errors) = await _OrderService.CreateOrderAsync(new CreateOrderRequest
+        {
+            ProductPublicId = ProductToOrder.PublicId,
+            Quantity = Quantity,
+            Notes = Notes
+        });
+
+        // Handle result status
+
+        if (success)
+        {
+            // Let event listeners know this order was created
+
+            await OnCreate.InvokeAsync();
+
+            ResetState();
+        }
+        else
+        {
+            ErrorMessages = errors;
+        }
+    }
+
+    private async Task OnCancelClicked()
+    {
+        await OnCancel.InvokeAsync();
+
+        ResetState();
+    }
+
+    private void ResetState()
+    {
+        Quantity = 0;
+        Notes = string.Empty;
+        ErrorMessages = null;
+    }
+
+    [Inject]
+    private OrderService _OrderService { get; set; }
+}

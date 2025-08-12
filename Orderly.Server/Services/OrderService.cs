@@ -26,6 +26,22 @@ namespace Orderly.Server.Services
             _Context.Orders.Add(order);
 
             await _Context.SaveChangesAsync();
+
+            // Broadcast event to seller
+
+            if (order.Product?.OwnerId is not null)
+            {
+                await _HubContext.Clients.User(order.Product.OwnerId)
+                    .SendAsync("OrderCreated", order.ToDto());
+            }
+
+            // Broadcast event to customer
+
+            if (order.CustomerId is not null)
+            {
+                await _HubContext.Clients.User(order.CustomerId)
+                    .SendAsync("OrderCreated", order.ToDto());
+            }
         }
 
         public async Task UpdateOrderAsync(Order updatedOrder)

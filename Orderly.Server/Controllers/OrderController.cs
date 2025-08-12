@@ -7,6 +7,8 @@ using Orderly.Server.Data;
 using Orderly.Server.Data.Models;
 using Orderly.Server.Services;
 using Orderly.Shared.Dtos;
+using Orderly.Shared.Helpers;
+using Orderly.Shared.Requests;
 
 namespace Orderly.Server.Controllers
 {
@@ -19,13 +21,83 @@ namespace Orderly.Server.Controllers
 
         private readonly UserManager<AppUser> _UserManager;
 
+        private readonly ProductService _ProductService;
+
         private readonly OrderService _OrderService;
 
-        public OrderController(AppDbContext context, UserManager<AppUser> userManager, OrderService orderService)
+        public OrderController(AppDbContext context, UserManager<AppUser> userManager, ProductService productService, OrderService orderService)
         {
             _Context = context;
             _UserManager = userManager;
+            _ProductService = productService;
             _OrderService = orderService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+        {
+            // Get the user
+
+            string? userId = _UserManager.GetUserId(User);
+
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+
+            // Validate fields
+
+            if (request.Quantity <= 0
+                || request.Notes is null)
+            {
+                return BadRequest();
+            }
+
+            // Get the product
+
+            Product? product = await _ProductService.GetProductFromPublicIdAsync(request.ProductPublicId);
+
+            if (product is null)
+            {
+                return NotFound("Product not found");
+            }
+
+            // Product must have enough stock
+
+            if (product.Stock < request.Quantity)
+            {
+                return BadRequest("Product does not have enough stock");
+            }
+
+            // Calculate the price
+
+            decimal price = product.Price * request.Quantity;
+
+            // Create the order
+
+            await _OrderService.AddOrderAsync(new Order
+            {
+                PublicId = await PublicIdGeneration.GenerateOrderId(_Context),
+                ProductId = product.Id,
+                CustomerId = userId,
+                Status = OrderStatus.Pending,
+                Quantity = request.Quantity,
+                Price = price,
+                Notes = request.Notes
+            });
+
+            // Decrement the product stock
+
+            product.Stock -= request.Quantity;
+
+            await _ProductService.UpdateProductAsync(
+                product,
+                tags: product.Tags
+                    .Select(t => t.Name)
+                    .ToList()
+            );
+
+            return NoContent();
         }
 
         [HttpGet("placed")]

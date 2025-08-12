@@ -89,8 +89,8 @@ namespace Orderly.Server.Controllers
                 category = categoryEnum;
             }
             else
-                return BadRequest();
             {
+                return BadRequest();
             }
 
             // Create the new product

@@ -1,0 +1,656 @@
+﻿
+@using Orderly.Client.Components
+@using Orderly.Client.Pages.Shared
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+
+@page "/marketplace"
+@namespace Orderly.Client.Pages
+@layout MainLayout
+
+<PageTitle>Marketplace - Orderly</PageTitle>
+
+<style>
+    .filter-input {
+        background-color: var(--nav-bg);
+        border: 1px solid var(--border);
+        color: var(--fg);
+        transition: border-color 0.2s ease;
+    }
+
+    .filter-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        outline: none;
+    }
+
+    .form-check-input {
+        width: 1.4rem;
+        height: 1.4rem;
+        cursor: pointer;
+        color: var(--fg) !important;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    input.form-control.filter-input,
+    select.form-select.filter-input {
+        background-color: var(--nav-bg) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--fg) !important;
+        caret-color: var(--fg) !important;
+    }
+
+    input.form-control.filter-input::placeholder,
+    select.form-select.filter-input::placeholder {
+        color: var(--fg);
+        opacity: 0.6;
+    }
+
+    input.form-control.filter-input:focus,
+    select.form-select.filter-input:focus {
+        background-color: var(--nav-bg) !important;
+        border-color: var(--primary) !important;
+        color: var(--fg) !important;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+        outline: none !important;
+    }
+
+    input.form-control.filter-input:-webkit-autofill {
+        background-color: var(--nav-bg) !important;
+        color: var(--fg) !important;
+        transition: background-color 5000s ease-in-out 0s !important;
+    }
+
+    .product-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .product-grid-item {
+        flex: 1 1 300px;
+        width: 20%;
+        height: 300px;
+        max-width: 320px;
+        display: flex;
+    }
+
+    .product-grid-item.empty {
+        height: 300px !important;
+        width: 300px !important;
+        background-color: transparent !important;
+        color: transparent !important;
+    }
+
+    .skeleton-card {
+        background-color: var(--nav-bg);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .skeleton-card .shimmer {
+        background: linear-gradient( 90deg, rgba(68, 68, 68, 0.25) 25%, rgba(102, 102, 102, 0.35) 50%, rgba(68, 68, 68, 0.25) 75% );
+        background-size: 200% 100%;
+        background-position: -200% 0;
+        animation: shimmer 3s infinite linear;
+    }
+
+    .skeleton-title {
+        width: 70%;
+        height: 24px;
+    }
+
+    .skeleton-badge {
+        width: 60px;
+        height: 22px;
+        border-radius: 0.5rem;
+    }
+
+    .skeleton-badge.price {
+        width: 80px;
+    }
+
+    .skeleton-text {
+        width: 100%;
+        height: 14px;
+    }
+
+    .skeleton-stock {
+        width: 50%;
+        height: 14px;
+    }
+
+    .skeleton-button {
+        width: 80px;
+        height: 32px;
+        border-radius: 0.4rem;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    .product-card {
+        background-color: var(--nav-bg);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        color: var(--fg);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .product-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-description {
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+        max-height: 3.5rem;
+        text-overflow: ellipsis;
+    }
+
+    .product-price {
+        font-size: 1rem;
+        color: #2ECC71;
+    }
+
+    .product-stock {
+        font-size: 0.8rem;
+    }
+
+    .product-card .buy-btn {
+        background-color: transparent;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: 0.4rem;
+        padding: 0.3rem;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .product-card .buy-btn:hover {
+        background-color: var(--primary);
+        color: var(--fg);
+    }
+
+    .product-card .badge {
+        padding: 0.35em 0.7em;
+        font-size: 0.85rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid transparent;
+    }
+
+    .product-card .badge.electronics { /* Pastel teal */
+        background-color: #A3D2CA;
+        color: #0B3C3C;
+    }
+
+    .product-card .badge.clothing { /* Pastel coral */
+        background-color: #F9C6B3;
+        color: #6B2D1F;
+    }
+
+    .product-card .badge.books { /* Pastel mustard */
+        background-color: #FFE5A3;
+        color: #6D5A00;
+    }
+
+    .product-card .badge.toys { /* Pastel lavender */
+        background-color: #DCC6E0;
+        color: #4A2F4A;
+    }
+
+    .product-card .badge.home { /* Pastel mint */
+        background-color: #B8E2D6;
+        color: #2B4D44;
+    }
+
+    .pagination-wrapper button {
+        min-width: 80px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .pagination-wrapper button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @@media (max-width: 575px) {
+        .filters > div {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+<div class="marketplace-wrapper container my-4">
+    <h2 class="mb-4" style="color: var(--fg);">Marketplace</h2>
+
+    @*
+        Filters
+    *@
+
+    <div class="filters row g-3 mb-4 align-items-center">
+        <div class="col-12 col-md-4">
+            <input class="form-control filter-input"
+                   placeholder="Search products..."
+                   @bind="SearchText"
+                   @bind:event="oninput"
+                   @onblur="PerformSearch" />
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select class="form-select filter-input"
+                @bind="SelectedCategory"
+                @bind:event="onchange"
+                @bind:after="PerformSearch">
+
+                <option value="">All Categories</option>
+
+                @foreach (var category in CategoryOptions)
+                {
+                    <option>@category</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <input type="number"
+                   min="0"
+                   class="form-control filter-input"
+                   placeholder="Min Price"
+                   @bind="MinPrice"
+                   @bind:event="onchange"
+                   @bind:after="PerformSearch" />
+        </div>
+
+        <div class="col-6 col-md-2">
+            <input type="number"
+                   min="0"
+                   class="form-control filter-input"
+                   placeholder="Max Price"
+                   @bind="MaxPrice"
+                   @bind:event="onchange"
+                   @bind:after="PerformSearch"/>
+        </div>
+
+        <div class="col-6 col-md-1 d-flex align-items-center justify-content-start">
+            <input type="checkbox"
+                   class="form-check-input me-2"
+                   id="inStockCheck"
+                   @bind="InStockOnly"
+                   @bind:event="onchange"
+                   @bind:after="PerformSearch" />
+            <label class="form-check-label fw-semibold"
+                   for="inStockCheck"
+                   style="color: var(--fg); user-select: none;">
+                In Stock
+            </label>
+        </div>
+    </div>
+
+    @*
+        Products
+    *@
+
+    <div class="product-grid d-flex flex-wrap gap-3">
+        @if (IsLoading)
+        {
+            for (int i = 0; i < PageSize; i++)
+            {
+                <div class="product-grid-item" aria-hidden="true">
+                    <div class="skeleton-card w-100 d-flex flex-column p-4">
+                        <div class="skeleton-title shimmer mb-2"></div>
+
+                        <div class="skeleton-badges d-flex gap-2 mb-3">
+                            <div class="skeleton-badge shimmer"></div>
+                            <div class="skeleton-badge shimmer price"></div>
+                        </div>
+
+                        <div class="skeleton-text shimmer mb-1"></div>
+                        <div class="skeleton-text shimmer mb-3"></div>
+
+                        <div class="skeleton-stock shimmer mb-3"></div>
+
+                        <div class="skeleton-button shimmer align-self-start"></div>
+                    </div>
+                </div>
+            }
+        }
+        else if (!Products.Any())
+        {
+            <div class="text-center p-5 text-muted">No products found.</div>
+        }
+        else
+        {
+            @foreach (ProductDto p in Products)
+            {
+                <div class="product-grid-item" @onclick="() => OpenProductViewModal(p)">
+                    <div class="product-card d-flex flex-column p-4 w-100">
+                        <h5 class="product-name mb-2" title="@p.Name">@p.Name</h5>
+
+                        <!-- Colour-coded category -->
+
+                        <span class="badge mb-3 align-self-start @(p.Category.ToLowerInvariant())">
+                            @p.Category
+                        </span>
+
+                        <!-- Display upto 60 character description -->
+
+                        <p class="product-description text-muted flex-grow-1">@TruncateDescription(p.Description, 70)</p>
+
+                        <div class="product-price fw-bold mb-1">@p.Price.ToString("C")</div>
+                        <div class="product-stock text-muted small">
+                            Stock: @p.Stock | Sales: @p.Sales
+                        </div>
+
+                        <button class="buy-btn mt-4" @onclick="() => OnBuyClicked(p)">
+                            @(IsLoggedIn ? "Buy" : "Login to Buy")
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @*
+                Empty filler products
+            *@
+
+            if (PageSize > Products.Count)
+            {
+                for (int i = Products.Count; i < PageSize; i++)
+                {
+                    <div class="product-grid-item empty">
+
+                    </div>
+                }
+            }
+        }
+    </div>
+
+    @*
+        Pagination
+    *@
+
+    <div class="pagination-wrapper d-flex justify-content-center align-items-center gap-3 mt-4 flex-wrap">
+        <button class="btn btn-outline-primary"
+                disabled="@IsFirstPage"
+                @onclick="PreviousPage">
+            &laquo; Prev
+        </button>
+
+        <span style="color: var(--fg); font-weight: 600;">
+            Page @Page of @TotalPages
+        </span>
+
+        <button class="btn btn-outline-primary"
+                disabled="@IsLastPage"
+                @onclick="NextPage">
+            Next &raquo;
+        </button>
+    </div>
+</div>
+
+<script>
+    window.scrollHelpers = {
+        getScrollY: function () {
+            return window.scrollY || window.pageYOffset;
+        },
+        setScrollY: function (y) {
+            window.scrollTo(0, y);
+        }
+    };
+</script>
+
+<!-- Product View Modal -->
+
+<ProductViewModal IsVisible="@IsProductViewModalVisible"
+                  ProductToView="@SelectedProduct"
+                  OnClose="@CloseProductViewModal" />
+
+<!-- Order View Modal -->
+
+<OrderCreateModal IsVisible="@IsOrderCreateModalVisible"
+                  ProductToOrder="@SelectedProduct"
+                  OnCreate="@CloseOrderCreateModal"
+                  OnCancel="@CloseOrderCreateModal" />
+
+@code {
+    List<ProductDto> Products = new();
+
+    private readonly List<string> CategoryOptions = new()
+    {
+        "Electronics",
+        "Clothing",
+        "Books",
+        "Toys",
+        "Home"
+    };
+
+    string SearchText = "";
+    string SelectedCategory = "";
+    decimal? MinPrice = null;
+    decimal? MaxPrice = null;
+    bool InStockOnly = false;
+
+    private bool IsLoggedIn = false;
+
+    private ProductDto? SelectedProduct = null;
+
+    bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check logged in status
+
+        AuthenticationState authState = await _AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        IsLoggedIn = user.Identity is not null && user.Identity.IsAuthenticated;
+
+        // Load products
+
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        IsLoading = true;
+
+        StateHasChanged(); // Show skeletons
+
+        await Task.Delay(300); // Required to make skeleton transition smooth
+
+        MarketplaceResponse? response = await _MarketplaceService.GetProductsAsync(
+            SearchText,
+            SelectedCategory,
+            MinPrice,
+            MaxPrice,
+            InStockOnly,
+            Page
+        );
+
+        Products = response?.Products ?? new();
+
+        // Total pages is the total amount of products / size of each page (must round up)
+        TotalPages = (int)Math.Ceiling((double)(response?.TotalCount ?? 1) / PageSize);
+
+        StateHasChanged(); // Show products
+
+        IsLoading = false;
+    }
+
+    private async Task PerformSearch()
+    {
+        Page = 1;
+
+        await LoadProducts();
+    }
+
+    private void OnBuyClicked(ProductDto product)
+    {
+        if (IsLoggedIn)
+        {
+            OpenOrderCreateModal(product);
+        }
+        else
+        {
+            NavigateToLogin();
+        }
+    }
+
+    private string TruncateDescription(string description, int maxLength)
+    {
+        if (string.IsNullOrEmpty(description))
+        {
+            return string.Empty;
+        }
+
+        if (description.Length <= maxLength)
+        {
+            return description;
+        }
+
+        return description.Substring(0, maxLength).TrimEnd() + "…";
+    }
+
+    // ***** Paging ***** //
+
+    int Page = 1;
+    const int PageSize = 16;
+    int TotalPages = 1;
+
+    private bool IsFirstPage
+    {
+        get
+        {
+            return Page == 1;
+        }
+    }
+
+    private bool IsLastPage
+    {
+        get
+        {
+            return Page >= TotalPages;
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (!IsFirstPage)
+        {
+            Page--;
+
+            await SaveScrollPosition();
+
+            await LoadProducts();
+
+            await RestoreScrollPosition();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (!IsLastPage)
+        {
+            Page++;
+
+            await SaveScrollPosition();
+
+            await LoadProducts();
+
+            await RestoreScrollPosition();
+        }
+    }
+
+    // ***** Scroll Positioning ***** //
+
+    private double ScrollPosition = 0;
+
+    private async Task SaveScrollPosition()
+    {
+        ScrollPosition = await JS.InvokeAsync<double>("scrollHelpers.getScrollY");
+    }
+
+    private async Task RestoreScrollPosition()
+    {
+        await JS.InvokeVoidAsync("scrollHelpers.setScrollY", ScrollPosition);
+    }
+
+    // ***** Product View Modal ***** //
+
+    private bool IsProductViewModalVisible = false;
+
+    private void OpenProductViewModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsProductViewModalVisible = true;
+    }
+
+    private void CloseProductViewModal()
+    {
+        SelectedProduct = null;
+        IsProductViewModalVisible = false;
+    }
+
+    // ***** Order Create Modal ***** //
+
+    private bool IsOrderCreateModalVisible = false;
+
+    private void OpenOrderCreateModal(ProductDto product)
+    {
+        SelectedProduct = product;
+        IsOrderCreateModalVisible = true;
+    }
+
+    private void CloseOrderCreateModal()
+    {
+        SelectedProduct = null;
+        IsOrderCreateModalVisible = false;
+    }
+
+    // ***** Navigation ***** //
+
+    private void NavigateToLogin()
+    {
+        _NavigationManager.NavigateTo("/login");
+    }
+
+    [Inject]
+    private MarketplaceService _MarketplaceService { get; set; }
+
+    [Inject]
+    private AuthenticationStateProvider _AuthenticationStateProvider { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
+}
