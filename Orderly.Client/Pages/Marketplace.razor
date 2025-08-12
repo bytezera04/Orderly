@@ -370,7 +370,7 @@
                             Stock: @p.Stock | Sales: @p.Sales
                         </div>
 
-                        <button class="buy-btn mt-4" @onclick="() => OnBuyClicked(p)">
+                        <button class="buy-btn mt-4" @onclick="() => OnBuyClicked(p)" @onclick:stopPropagation>
                             @(IsLoggedIn ? "Buy" : "Login to Buy")
                         </button>
                     </div>
