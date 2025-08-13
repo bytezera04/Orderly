@@ -42,8 +42,8 @@
         height: 100%;
         background: linear-gradient(
             to bottom,
-            rgba(18, 18, 18, 0.6) 0%,
-            rgba(18, 18, 18, 0.6) 100%
+            rgba(18, 18, 18, 0.8) 0%,
+            rgba(18, 18, 18, 0.8) 100%
         );
         z-index: 1;
     }
@@ -71,12 +71,20 @@
     }
 
     .hero-text h1 {
+        position: relative;
         font-size: 3rem;
+        line-height: 1.1;
+        font-weight: 700;
     }
 
     .hero-text p {
         font-size: 1.25rem;
         margin-bottom: 1.5rem;
+    }
+
+    .hero-text .btn {
+        font-size: 1.25rem;
+        padding: 0.8rem;
     }
 
     @@media (max-width: 768px) {
@@ -85,11 +93,11 @@
         }
 
         .hero-text h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
         }
 
         .hero-text p {
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
     }
 
@@ -198,6 +206,32 @@
             font-size: 0.95rem;
         }
     }
+
+    #typewriter {
+        display: inline-block;
+        vertical-align: baseline;
+    }
+
+    .typewriter-spacer {
+        visibility: hidden;
+        position: absolute;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+    }
+
+    @@keyframes blink {
+        0%, 50% {
+            opacity: 1;
+        }
+
+        50.01%, 100% {
+            opacity: 0;
+        }
+    }
 </style>
 
 <div class="container py-4">
@@ -208,10 +242,21 @@
     <section class="hero-section mb-5 fade-in">
         <img id="hero-image" src="/images/hero-background.webp" class="hero-image" alt="Hero background" />
         <div class="hero-overlay"></div>
+
         <div class="hero-text">
-            <h1 class="fw-bold">Welcome to Orderly</h1>
+            <h1 class="fw-bold hero-text-h1">
+                <span id="typewriter"></span>
+                <span aria-hidden="true" class="typewriter-spacer">
+                    <!-- Use longest phrase as a placeholder -->
+                    Fast. Reliable. Modern.
+                </span>
+            </h1>
+
             <p>A modern marketplace to create products, manage orders, and communicate seamlessly.</p>
-            <NavLink class="btn btn-primary btn-lg" href="/marketplace">Explore Marketplace</NavLink>
+
+            <NavLink class="btn btn-primary btn-lg" href="/marketplace">
+                Explore Products
+            </NavLink>
         </div>
     </section>
 
@@ -381,6 +426,36 @@
             });
         });
     };
+
+    // Typewriters
+
+    window.startTyped = function (elementId, phrases) {
+        // If on mobile, use the first phrase (this is the primary
+        // phrase in the list)
+
+        if (window.innerWidth <= 768) {
+            const el = document.querySelector(elementId);
+            if (el && phrases.length > 0) {
+                el.innerHTML = phrases[0];
+            }
+            return;
+        }
+
+        // Show the primary phrase (first in the list) for 1 second
+
+        if (phrases.length > 0) {
+            phrases[0] += "^1000";
+        }
+
+        new Typed(elementId, {
+            strings: phrases,
+            typeSpeed: 50,
+            backSpeed: 25,
+            backDelay: 500,
+            loop: true,
+            html: true
+        });
+    }
 </script>
 
 @code {
@@ -391,6 +466,12 @@
             await JS.InvokeVoidAsync("initFadeInSections");
 
             await JS.InvokeVoidAsync("initFlipCards");
+
+            await JS.InvokeVoidAsync("startTyped", "#typewriter", new[] {
+                "Welcome to <span style='color:var(--primary);'>Orderly</span>.",
+                "Fast. Reliable. Modern.",
+                "Your portfolio marketplace."
+            });
         }
     }
 
