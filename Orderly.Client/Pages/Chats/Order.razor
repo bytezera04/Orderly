@@ -92,7 +92,7 @@ else
     {
         get
         {
-            return CurrentOrder?.Product?.PublicId == CurrentUser?.PublicId;
+            return CurrentOrder?.Product?.Owner?.PublicId == CurrentUser?.PublicId;
         }
     }
 
