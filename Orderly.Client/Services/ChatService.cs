@@ -17,7 +17,7 @@ namespace Orderly.Client.Services
         {
             try
             {
-                return await _HttpClient.GetFromJsonAsync<List<ChatThreadPreviewDto>>("/api/chat/previews");
+                return await _HttpClient.GetFromJsonAsync<List<ChatThreadPreviewDto>>("/api/chats/previews");
             }
             catch (Exception)
             {
@@ -29,7 +29,7 @@ namespace Orderly.Client.Services
         {
             try
             {
-                return await _HttpClient.GetFromJsonAsync<ChatThreadDto>($"/api/chat/order-chat/{contextPublicId}");
+                return await _HttpClient.GetFromJsonAsync<ChatThreadDto>($"/api/chats/order-chat/{contextPublicId}");
             }
             catch (Exception)
             {
@@ -61,7 +61,7 @@ namespace Orderly.Client.Services
                     params_ += $"?startMessagePublicId={startMessagePublicId}";
                 }
 
-                return await _HttpClient.GetFromJsonAsync<List<ChatMessageDto>>($"/api/chat/{chat.PublicId}/messages{params_}");
+                return await _HttpClient.GetFromJsonAsync<List<ChatMessageDto>>($"/api/chats/{chat.PublicId}/messages{params_}");
             }
             catch (Exception)
             {
@@ -71,7 +71,7 @@ namespace Orderly.Client.Services
 
         public async Task CreateChatMessageAsync(ChatThreadDto chat, ChatMessageDto message)
         {
-            await _HttpClient.PostAsJsonAsync($"/api/chat/{chat.PublicId}", message);
+            await _HttpClient.PostAsJsonAsync($"/api/chats/{chat.PublicId}", message);
         }
     }
 }

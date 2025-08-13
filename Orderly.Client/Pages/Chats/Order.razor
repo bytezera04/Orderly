@@ -6,7 +6,7 @@
 @using Orderly.Client.Services
 @using Orderly.Shared.Dtos
 
-@page "/dashboard/chat/order/{OrderPublicId}"
+@page "/dashboard/chats/order/{OrderPublicId}"
 @namespace Orderly.Client.Pages.Chat
 @layout DashboardLayout
 
@@ -14,7 +14,7 @@
 
 <PageTitle>Order Chat - Orderly</PageTitle>
 
-@if (CurrentOrder is null)
+@if (CurrentUser is null || CurrentOrder is null || CurrentChat is null)
 {
     <div class="text-muted">Loading...</div>
 }
@@ -43,7 +43,7 @@ else
 
                         <div class="sidebar-section">
                             <div class="sidebar-label user-select-none">Product</div>
-                            <div class="sidebar-value">@(CurrentOrder.Product?.Name ?? "(Deleted Product)")</div>
+                            <div class="sidebar-value">@CurrentOrder.ProductDisplayName</div>
                         </div>
 
                         <div class="sidebar-section">
@@ -52,8 +52,8 @@ else
                         </div>
 
                         <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">Customer</div>
-                            <div class="sidebar-value">@(CurrentOrder.Customer?.FullName ?? "(Deleted User)")</div>
+                            <div class="sidebar-label user-select-none">@OtherUserTitle</div>
+                            <div class="sidebar-value">@OtherUserDisplayName</div>
                         </div>
 
                         <button class="btn btn-outline-primary mt-3"
@@ -87,6 +87,34 @@ else
     private bool IsOrderViewModalVisible { get; set; } = false;
 
     private bool IsLoading = true;
+
+    private bool IsSeller
+    {
+        get
+        {
+            return CurrentOrder?.Product?.PublicId == CurrentUser?.PublicId;
+        }
+    }
+
+    private string OtherUserTitle
+    {
+        get
+        {
+            return IsSeller
+                ? "Customer"
+                : "Seller";
+        }
+    }
+
+    private string OtherUserDisplayName
+    {
+        get
+        {
+            return (IsSeller
+                ? CurrentOrder?.ProductOwnerDisplayName
+                : CurrentOrder?.CustomerDisplayName) ?? string.Empty;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

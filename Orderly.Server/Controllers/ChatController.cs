@@ -12,7 +12,7 @@ namespace Orderly.Server.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/chat")]
+    [Route("api/chats")]
     public class ChatController : ControllerBase
     {
         private readonly AppDbContext _Context;
