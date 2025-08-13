@@ -9,7 +9,7 @@
 @using ApexCharts
 @using System.Text.Json.Serialization
 
-@page "/dashboard/overview"
+@page "/dashboard"
 @namespace Orderly.Client.Pages.Dashboard
 @layout DashboardLayout
 
@@ -243,19 +243,6 @@
 
 <div class="overview-wrapper mt-5 mb-5">
     <div class="overview-container row g-2 d-flex justify-center align-items-center">
-        @*
-            Welcome
-        *@
-
-        @if (CurrentUser is not null)
-        {
-            <div class="mb-4">
-                <h4 class="fw-bold" style="color: var(--fg);">
-                    Welcome, @CurrentUser.FullName!
-                </h4>
-            </div>
-        }
-
         @*
             Cards
         *@
@@ -641,6 +628,8 @@
 
         LoadingProducts = true;
         LoadingOrders = true;
+
+        CurrentUser = await _UserService.GetCurrentUser();
 
         Products = await _ProductService.GetProductsAsync();
 
