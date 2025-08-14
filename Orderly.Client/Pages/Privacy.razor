@@ -1,93 +1,57 @@
 ﻿
-@using Orderly.Client.Pages.Shared
+@using Microsoft.AspNetCore.Components
 
 @page "/privacy"
-@namespace Orderly.Client.Pages
-@layout MainLayout
 
 <PageTitle>Privacy - Orderly</PageTitle>
 
-<style>
-    .privacy-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background-color: var(--nav-bg);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        color: var(--fg);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .privacy-container h1 {
-        color: var(--primary);
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .privacy-container .last-updated {
-        font-size: 0.9rem;
-        color: var(--muted);
-        margin-bottom: 2rem;
-    }
-
-    .privacy-container section {
-        margin-bottom: 1.75rem;
-    }
-
-    .privacy-container h2 {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-        color: var(--primary);
-    }
-
-    .privacy-container p {
-        line-height: 1.6;
-        color: var(--fg);
-    }
-</style>
-
-<div class="privacy-container">
-    <h1>Privacy Policy</h1>
-
-    <p class="last-updated">Last updated: August 9, 2025</p>
-
-    <section>
-        <h2>Overview</h2>
-        <p>
-            This is a <strong>portfolio web application</strong> created to showcase my work.
-            It is not a commercial product, and no real personal data is collected, stored, or processed.
+<div class="pt-20 min-h-screen bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
+    <div class="max-w-4xl mx-auto px-4 py-24 space-y-8">
+        <h1 class="text-4xl font-bold text-center text-primary dark:text-primary">Privacy Policy</h1>
+        <p class="text-lg text-lightfg/90 dark:text-darkfg/90 text-center">
+            This privacy policy explains how we handle your data on this portfolio web application.
         </p>
-    </section>
 
-    <section>
-        <h2>Data Collection</h2>
-        <p>
-            Any data you enter here is <em>purely for demonstration purposes</em> and will not be used
-            for anything other than demonstration or shared with third parties.
-            In most cases, data may only exist temporarily in your browser’s memory during your visit.
-        </p>
-    </section>
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold text-lightfg dark:text-darkfg">Information We Collect</h2>
+            <p class="text-lightfg/90 dark:text-darkfg/90">
+                We do not collect any personal information information unless you explicitly provide it
+            </p>
+        </section>
 
-    <section>
-        <h2>Cookies</h2>
-        <p>
-            This demo may use minimal cookies or local storage solely, this demo website only uses
-            what is required. No tracking or analytics.
-        </p>
-    </section>
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold text-lightfg dark:text-darkfg">How We Use Your Information</h2>
+            <p class="text-lightfg/90 dark:text-darkfg/90">
+                We don't use any of your information outside of the purpose of showcasing this portfolio web app,
+                no information is ever sold or shared.
+            </p>
+        </section>
 
-    <section>
-        <h2>Your Privacy</h2>
-        <p>
-            Since this is a demo, there’s no need for concern about privacy violations
-        </p>
-    </section>
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold text-lightfg dark:text-darkfg">Cookies</h2>
+            <p class="text-lightfg/90 dark:text-darkfg/90">
+                This site may use cookies for essential functionality or analytics purposes, but no personal data is tied to these cookies.
+            </p>
+        </section>
 
-    <section>
-        <h2>Contact</h2>
-        <p>
-            You can find me on <a href="https://github.com/tokyolatter04" rel="nofollow" target="_blank">my GitHub</a>
-        </p>
-    </section>
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold text-lightfg dark:text-darkfg">Third-Party Services</h2>
+            <p class="text-lightfg/90 dark:text-darkfg/90">
+                We may link to external services or repositories (e.g., GitHub), but we are not responsible for their privacy practices.
+            </p>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold text-lightfg dark:text-darkfg">Changes to This Policy</h2>
+            <p class="text-lightfg/90 dark:text-darkfg/90">
+                This privacy policy may be updated occasionally. Any changes will be reflected on this page.
+            </p>
+        </section>
+
+        <section class="text-center pt-8">
+            <p class="text-lightfg/80 dark:text-darkfg/80">
+                &copy; @DateTime.Now.Year Orderly. All rights reserved.
+            </p>
+        </section>
+    </div>
 </div>

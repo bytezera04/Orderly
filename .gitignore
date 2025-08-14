@@ -31,6 +31,12 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Node modules
+node_modules/
+
+# Compiled tailwind css
+Orderly.Client/wwwroot/css/output.css
+
 # Server side config (contains secrets)
 
 Orderly.Server/appsettings.json
