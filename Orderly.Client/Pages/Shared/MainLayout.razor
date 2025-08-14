@@ -1,382 +1,211 @@
 ﻿
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.JSInterop
-
 @inherits LayoutComponentBase
 
 @namespace Orderly.Client.Pages.Shared
-
-<style>
-    :root {
-        --primary: #3B82F6;
-        --bg: #121212;
-        --fg: #d0d0d0;
-        --nav-bg: #1f1f1f;
-        --muted: rgba(208, 208, 208, 0.7);
-        --border: #2a2a2a;
-        --danger: #dc2626;
-
-        --navbar-height: 70px;
-        --footer-height: 100px;
-    }
-
-    [data-theme="light"] {
-        --primary: #3B82F6;
-        --bg: #ffffff;
-        --fg: #1e1e1e;
-        --nav-bg: #f8f9fa;
-        --muted: rgba(30, 30, 30, 0.6);
-        --border: #dee2e6;
-        --danger: #dc2626;
-    }
-
-    .text-muted {
-        color: var(--muted) !important;
-    }
-
-    body {
-        background-color: var(--bg);
-        color: var(--fg);
-        font-family: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .navbar {
-        height: calc(var(--navbar-height) - 2px);
-        border-bottom: 2px solid var(--border);
-        background-color: var(--nav-bg) !important;
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-    }
-
-    .nav-link,
-    .navbar-brand {
-        color: var(--fg) !important;
-        position: relative;
-        transition: color 0.3s ease;
-    }
-
-    .nav-link::after {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 3px;
-        bottom: -4px;
-        left: 50%;
-        background-color: var(--primary);
-        transition: all 0.3s ease;
-        border-radius: 2px;
-        transform: translateX(-50%);
-    }
-
-    .navbar-toggler:focus,
-    .navbar-toggler:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--primary);
-        border-radius: 4px;
-    }
-
-    .nav-link:hover::after,
-    .nav-link:focus::after,
-    .nav-link.active::after {
-        width: 60%;
-    }
-
-    @@media (max-width: 991.98px) {
-        .navbar {
-            height: auto;
-        }
-
-        .nav-link::after {
-            display: none;
-        }
-
-        .nav-link:hover,
-        .nav-link:focus {
-            color: var(--primary) !important;
-        }
-    }
-
-    .navbar-toggler:focus,
-    .navbar-toggler:focus-visible {
-        outline: none;
-        box-shadow: none;
-    }
-
-    .navbar-toggler-icon {
-        filter: invert(1);
-    }
-
-    .btn-primary {
-        transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: var(--primary-dark);
-        transform: scale(1.05);
-    }
-
-    .btn-outline-primary {
-        color: var(--primary);
-        border-color: var(--primary);
-        transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: var(--primary);
-        color: var(--fg);
-    }
-
-    .main-content {
-        min-height: calc(100vh - var(--navbar-height) - var(--footer-height));
-    }
-
-    .site-footer {
-        height: var(--footer-height);
-        background-color: var(--nav-bg);
-        color: var(--fg);
-        padding: 2rem 1rem;
-        margin-top: 4rem;
-        border-top: 2px solid var(--border);
-        font-size: 0.9rem;
-    }
-
-    .site-footer-nav a {
-        color: var(--primary);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .site-footer-nav a:hover,
-    .site-footer-nav a:focus {
-        color: #1e40af;
-        text-decoration: underline;
-        outline: none;
-    }
-
-    .site-footer-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .site-footer-brand {
-        font-weight: 700;
-        font-size: 1.25rem;
-        user-select: none;
-    }
-
-    .site-footer-nav {
-        display: flex;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .site-footer-nav a {
-        font-weight: 500;
-    }
-
-    .site-footer-socials {
-        display: flex;
-        gap: 1rem;
-        font-size: 1.25rem;
-    }
-
-    .site-footer-socials a {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        background: transparent;
-        border-radius: 0;
-        transition: none;
-    }
-
-    .site-footer-socials a:hover,
-    .site-footer-socials a:focus {
-        color: var(--primary);
-        background: transparent;
-        outline: none;
-        text-decoration: underline;
-    }
-
-    @@media (max-width: 576px) {
-        .site-footer {
-            height: auto;
-            padding: 1.5rem;
-            align-items: flex-start;
-        }
-
-        .site-footer-container {
-            flex-direction: column;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .site-footer-brand {
-            margin-bottom: 0.5rem;
-        }
-
-        .site-footer-nav {
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 0.9rem;
-            width: 100%;
-        }
-
-        .site-footer-socials {
-            font-size: 1.5rem;
-            width: 100%;
-            justify-content: flex-start;
-        }
-    }
-</style>
 
 <div class="main-layout">
     @*
         Navbar
     *@
 
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="/">Orderly</a>
+    <nav class="w-full bg-lightcard dark:bg-darkcard shadow-md fixed top-0 left-0 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/" class="text-2xl font-bold text-primary dark:text-primary">
+                    Orderly
+                </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <!-- Desktop nav links -->
+                <div class="hidden md:flex space-x-8">
+                    @foreach (var navLink in NavLinks)
+                    {
+                        <a href="@navLink.Path" class="@($"relative font-medium text-lightfg dark:text-darkfg transition duration-300 hover:text-primary dark:hover:text-primary {(IsLinkActive(navLink) ? "text-primary dark:text-primary" : "")}")">
+                            @navLink.Title
+                            <span class="absolute left-0 -bottom-1 w-full h-0.5 bg-primary dark:bg-primary scale-x-0 transition-transform duration-300 hover:scale-x-100 @(IsLinkActive(navLink) ? "scale-x-100" : "")"></span>
+                        </a>
+                    }
+                </div>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 fs-6">
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/dashboard" Match="NavLinkMatch.Prefix">Dashboard</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/marketplace">Marketplace</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/privacy">Privacy</NavLink>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" @onclick="ToggleTheme" aria-label="Toggle theme">
-                        <i class="bi bi-circle-half"></i>
-                        @CurrentTheme
+                <!-- Theme toggle + Hamburger -->
+                <div class="flex items-center space-x-4">
+                    <!-- Navbar Theme Toggle -->
+                    <button @onclick="ToggleTheme" class="p-2 rounded-md hover:bg-lightcard/20 dark:hover:bg-darkcard/20 transition-colors duration-200">
+                        @if (IsDarkMode)
+                        {
+                            <!-- Sun icon for light mode -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                <!-- Core circle -->
+                                <circle cx="12" cy="12" r="5" fill="currentColor" />
+                                <!-- Rays -->
+                                <line x1="12" y1="1" x2="12" y2="4" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="1" y1="12" x2="4" y2="12" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="20" y1="12" x2="23" y2="12" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" stroke="currentColor" stroke-linecap="round" />
+                                <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" stroke="currentColor" stroke-linecap="round" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <!-- Moon icon for dark mode (dark gray for visibility in light mode) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+                            </svg>
+                        }
+                    </button>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn"
+                            class="md:hidden p-2 rounded-lg transition
+                                   bg-lightbg/10 dark:bg-darkbg/10
+                                   hover:bg-lightbg/20 dark:hover:bg-darkbg/20
+                                   text-lightfg dark:text-darkfg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
                     </button>
                 </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-2 space-y-2 flex flex-col">
+                @foreach (var navLink in NavLinks)
+                {
+                    var isActive = _NavigationManager.Uri.EndsWith(navLink.Title);
+                    <a href="@navLink.Path" class="@($"block px-4 py-2 rounded-lg font-medium text-lightfg dark:text-darkfg hover:bg-lightbg/20 dark:hover:bg-darkbg/20 transition {(isActive ? "bg-lightbg/20 dark:bg-darkbg/20" : "")}")">
+                        @navLink.Title
+                    </a>
+                }
             </div>
         </div>
     </nav>
 
     @*
-        Content
+        Page Content
     *@
 
-    <div class="main-content">
-        @Body
-    </div>
+    @Body
 
     @*
         Footer
     *@
 
-    <footer class="site-footer" role="contentinfo" aria-label="Site Footer">
-        <div class="site-footer-container">
-            <div class="site-footer-brand" aria-label="Site title">
-                Orderly
+    <footer class="bg-lightcard dark:bg-darkcard text-lightfg dark:text-darkfg py-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-8">
+            <!-- Brand / Logo -->
+            <div class="text-center sm:text-left">
+                <h2 class="text-2xl font-bold text-primary dark:text-primary">Orderly</h2>
+                <p class="text-sm text-lightfg/80 dark:text-darkfg/80">
+                    Modern marketplace solutions for digital products.
+                </p>
             </div>
 
-            <nav class="site-footer-nav" aria-label="Footer navigation">
-                <NavLink href="/dashboard">Dashboard</NavLink>
-                <NavLink href="/marketplace">Marketplace</NavLink>
-                <NavLink href="/privacy">Privacy</NavLink>
-            </nav>
+            <!-- Site Links -->
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="/" class="hover:text-primary dark:hover:text-primary transition">Home</a>
+                <a href="/dashboard/overview" class="hover:text-primary dark:hover:text-primary transition">Dashboard</a>
+                <a href="/features" class="hover:text-primary dark:hover:text-primary transition">Features</a>
+                <a href="/contact" class="hover:text-primary dark:hover:text-primary transition">Contact</a>
+            </div>
 
-            <div class="site-footer-socials" aria-label="Social media links">
-                <a href="https://github.com/bytezera04" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-                    <i class="bi bi-github"></i>
+            <!-- GitHub Icon -->
+            <div class="flex justify-center sm:justify-end">
+                <a href="https://github.com/bytezera04/Orderly" target="_blank" class="hover:text-primary dark:hover:text-primary transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 0C5.372 0 0 5.373 0 12c0 5.303 3.438 9.8 8.207 11.387.6.113.793-.26.793-.577 0-.285-.01-1.04-.015-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.744.082-.729.082-.729 1.205.085 1.84 1.238 1.84 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.304.76-1.604-2.665-.303-5.467-1.333-5.467-5.93 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 016 0c2.292-1.552 3.3-1.23 3.3-1.23.653 1.653.241 2.873.118 3.176.77.84 1.236 1.91 1.236 3.22 0 4.61-2.807 5.625-5.48 5.921.43.37.814 1.096.814 2.21 0 1.594-.014 2.88-.014 3.27 0 .32.192.694.8.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z" clip-rule="evenodd" />
+                    </svg>
                 </a>
             </div>
         </div>
     </footer>
 </div>
 
-<script>
-    window.collapseNavbarOnLinkClick = () => {
-        const navLinks = document.querySelectorAll(".navbar-collapse .nav-link");
-        const navbarCollapse = document.querySelector(".navbar-collapse");
-        navLinks.forEach(link => {
-            link.addEventListener("click", () => {
-                if (navbarCollapse.classList.contains("show")) {
-                    bootstrap.Collapse.getInstance(navbarCollapse)?.hide();
-                }
-            });
-        });
-    };
-</script>
-
 @code {
-    private string CurrentTheme { get; set; } = "Dark";
-
-    private bool Initialized { get; set; } = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender && !Initialized)
+        // Read the stored theme
+
+        var storedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "theme");
+        if (storedTheme == "dark")
         {
-            var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "preferredTheme");
-            if (!string.IsNullOrEmpty(savedTheme))
-            {
-                CurrentTheme = savedTheme switch
-                {
-                    "light" => "Light",
-                    _ => "Dark"
-                };
-                await SetTheme(savedTheme);
-            }
-            else
-            {
-                await SetTheme("dark");
-            }
-
-            await JS.InvokeVoidAsync("collapseNavbarOnLinkClick");
-
-            Initialized = true;
-            StateHasChanged();
+            IsDarkMode = true;
+            await JS.InvokeVoidAsync("document.documentElement.classList.add", "dark");
+        }
+        else if (storedTheme == "light")
+        {
+            IsDarkMode = false;
+            await JS.InvokeVoidAsync("document.documentElement.classList.remove", "dark");
         }
     }
 
+    // ***** Themes ***** //
+
+    private bool IsDarkMode = true;
+
     private async Task ToggleTheme()
     {
-        CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
-        await SetTheme(CurrentTheme.ToLower());
-        await JS.InvokeVoidAsync("localStorage.setItem", "preferredTheme", CurrentTheme.ToLower());
+        IsDarkMode = !IsDarkMode;
+
+        // Apply changes and set the local storage value
+
+        if (IsDarkMode)
+        {
+            await JS.InvokeVoidAsync("document.documentElement.classList.add", "dark");
+            await JS.InvokeVoidAsync("localStorage.setItem", "theme", "dark");
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("document.documentElement.classList.remove", "dark");
+            await JS.InvokeVoidAsync("localStorage.setItem", "theme", "light");
+        }
     }
 
-    private async Task SetTheme(string theme)
+    // ***** Navlinks ***** //
+
+    public class NavLink
     {
-        await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", theme);
-        StateHasChanged();
+        public string Title { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
     }
 
-    private bool IsActive(string href)
+    private readonly List<NavLink> NavLinks = new List<NavLink>
     {
-        var uri = Navigation.Uri;
-        var baseUri = Navigation.BaseUri;
-        return uri.TrimEnd('/').Equals(baseUri.TrimEnd('/') + href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+        new NavLink
+        {
+            Title = "Home",
+            Path = "/"
+        },
+        new NavLink
+        {
+            Title = "Dashboard",
+            Path = "/dashboard"
+        },
+        new NavLink
+        {
+            Title = "Marketplace",
+            Path = "/marketplace"
+        },
+        new NavLink
+        {
+            Title = "Privacy",
+            Path = "/privacy"
+        }
+    };
+
+    private bool IsLinkActive(NavLink navLink)
+    {
+        return _NavigationManager.Uri.EndsWith(navLink.Path);
     }
+
+    // ***** Injects ***** //
 
     [Inject]
-    private NavigationManager Navigation { get; set; } = default!;
+    private NavigationManager _NavigationManager { get; set; }
 
     [Inject]
-    private IJSRuntime JS { get; set; } = default!;
+    private IJSRuntime JS { get; set; }
 }

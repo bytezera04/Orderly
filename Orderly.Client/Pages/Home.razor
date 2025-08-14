@@ -1,211 +1,109 @@
 ﻿
-@using Orderly.Client.Pages.Shared
+@using Microsoft.AspNetCore.Components
 
 @page "/"
-@namespace Orderly.Client.Pages
-@layout MainLayout
 
 <PageTitle>Home - Orderly</PageTitle>
 
+<div class="pt-20 min-h-screen bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
+    @*
+        Hero Banner
+    *@
+
+    <section class="fade-in relative bg-lightbg dark:bg-darkbg">
+        <div class="max-w-7xl mx-auto px-4 py-24 flex flex-col-reverse lg:flex-row items-center lg:space-x-16">
+            <!-- Text -->
+
+            <div class="flex-1 text-center lg:text-left space-y-4">
+                <h1 class="text-4xl sm:text-5xl font-bold leading-snug">
+                    <span id="typewriter"></span>
+                    <span aria-hidden="true" class="typewriter-spacer">
+                        <!-- Use longest phrase as a placeholder -->
+                        Fast. Reliable. Modern.
+                    </span>
+                </h1>
+                <p class="text-base sm:text-lg text-lightfg dark:text-darkfg/90 max-w-lg mx-auto lg:mx-0">
+                    A modern portfolio marketplace for buying products, managing orders and more. Build your personal store with Orderly.
+                </p>
+                <a href="/dashboard/overview" class="inline-block px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow hover:shadow-md hover:bg-blue-700 transition-all duration-300">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Image -->
+
+            <div class="flex-1 relative w-full max-w-lg mx-auto mb-12 lg:mb-0">
+                <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 dark:to-black/30 z-10 pointer-events-none rounded-2xl"></div>
+                    <img src="images/hero-background.webp" alt="Orderly Hero" class="w-full h-full object-cover rounded-2xl transform transition-transform duration-500 hover:scale-105" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @*
+        Flip Cards
+    *@
+
+    <section class="py-16 bg-lightbg dark:bg-darkbg">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="fade-in text-3xl font-bold text-center mb-12 text-lightfg dark:text-darkfg">
+                Features that Impress
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                @foreach (var card in FlipCards)
+                {
+                    <div class="fade-in perspective w-full h-72">
+                        <div @onclick="() => card.IsFlipped = !card.IsFlipped" class="relative w-full h-full duration-700 transform-style-preserve-3d cursor-pointer @((card.IsFlipped ? "rotate-y-180" : ""))">
+                            <!-- Front -->
+
+                            <div class="absolute w-full h-full backface-hidden bg-lightcard dark:bg-darkcard rounded-xl shadow-lg flex flex-col justify-center items-center p-6 text-center">
+                                @((MarkupString)card.Icon)
+                                <h3 class="text-xl font-semibold text-lightfg dark:text-darkfg">@card.Title</h3>
+                                <p class="mt-2 text-sm text-lightfg/80 dark:text-darkfg/80">@card.Phrase</p>
+                            </div>
+
+                            <!-- Back -->
+
+                            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-lightcard dark:bg-darkcard rounded-xl shadow-lg flex flex-col items-center justify-center p-6 text-center">
+                                <p class="text-lightfg/90 dark:text-darkfg/90">@card.Description</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    @*
+        Showcase Gallery
+    *@
+
+    <section class="py-16 bg-lightbg dark:bg-darkbg">
+        <div class="max-w-6xl mx-auto px-4 space-y-16">
+            <h2 class="fade-in text-3xl font-bold text-center mb-12 text-lightfg dark:text-darkfg">
+                Dashboard Showcase
+            </h2>
+
+            @foreach (var item in DashboardShowcaseItems)
+            {
+                <div class="fade-in flex flex-col lg:flex-row items-center gap-8">
+                    <div class="lg:flex-1">
+                        <img src="@item.Img" alt="@item.Title" class="rounded-xl shadow-xl w-full max-w-md mx-auto lg:mx-0 transform transition-transform duration-500 hover:scale-105" />
+                    </div>
+                    <div class="lg:flex-1 text-center lg:text-left space-y-4">
+                        <h3 class="text-2xl font-bold text-lightfg dark:text-darkfg">@item.Title</h3>
+                        <p class="text-lightfg/90 dark:text-darkfg/90">@item.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
 <style>
-    .fade-in {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        will-change: opacity, transform;
-    }
-
-    .fade-in.visible {
-        opacity: 1;
-        transform: none;
-    }
-
-    .hero-section {
-        position: relative;
-        height: 500px;
-        border-radius: 1rem;
-        overflow: hidden;
-        user-select: none;
-    }
-
-    .hero-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .hero-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            to bottom,
-            rgba(18, 18, 18, 0.8) 0%,
-            rgba(18, 18, 18, 0.8) 100%
-        );
-        z-index: 1;
-    }
-
-    [data-theme="light"] .hero-overlay {
-        background: linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.65) 0%,
-            rgba(255, 255, 255, 0.65) 100%
-        );
-    }
-
-    .hero-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-        text-align: center;
-        color: var(--fg);
-        padding: 1rem;
-        width: 90%;
-        max-width: 800px;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-
-    .hero-text h1 {
-        position: relative;
-        font-size: 3rem;
-        line-height: 1.1;
-        font-weight: 700;
-    }
-
-    .hero-text p {
-        font-size: 1.25rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .hero-text .btn {
-        font-size: 1.25rem;
-        padding: 0.8rem;
-    }
-
-    @@media (max-width: 768px) {
-        .hero-section {
-            height: 400px;
-        }
-
-        .hero-text h1 {
-            font-size: 1.8rem;
-        }
-
-        .hero-text p {
-            font-size: 1.1rem;
-        }
-    }
-
-    .features .flip-card {
-        perspective: 1000px;
-        height: 100%;
-        width: 100%;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .flip-card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        transition: transform 0.8s;
-        transform-style: preserve-3d;
-    }
-
-    .flip-card:hover .flip-card-inner,
-    .flip-card.flipped .flip-card-inner {
-        transform: rotateY(180deg);
-    }
-
-    .flip-card:hover .flip-card-inner {
-        transform: rotateY(180deg);
-    }
-
-    .flip-card-front,
-    .flip-card-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: 1rem;
-        background-color: var(--nav-bg);
-        color: var(--fg);
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .flip-card-front i {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        color: var(--primary);
-    }
-
-    .flip-card-back {
-        transform: rotateY(180deg);
-    }
-
-    .features .col {
-        display: flex;
-        align-items: stretch;
-    }
-
-    .flip-card {
-        flex-grow: 1;
-        height: 100%;
-        min-height: 280px;
-    }
-
-    .flip-card-inner {
-        height: 100%;
-    }
-
-    .flip-card {
-        flex-grow: 1;
-    }
-
-    .about img {
-        max-width: 100%;
-        border-radius: 0.5rem;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .about .text-area {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-    }
-
-    .about .text-area h2 {
-        font-size: 1.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .about .text-area p {
-        font-size: 1rem;
-        line-height: 1.5;
-        margin-bottom: 1.5rem;
-        color: var(--fg);
-        max-width: 90%;
-    }
-
-    @@media (max-width: 768px) {
-        .about .text-area h2 {
-            font-size: 1.5rem;
-        }
-
-        .about .text-area p {
-            max-width: 100%;
-            font-size: 0.95rem;
-        }
-    }
+    <!-- Typewriter -->
 
     #typewriter {
         display: inline-block;
@@ -223,257 +121,123 @@
         line-height: inherit;
     }
 
-    @@keyframes blink {
-        0%, 50% {
-            opacity: 1;
-        }
+    <!-- Flip cards -->
 
-        50.01%, 100% {
-            opacity: 0;
-        }
+    .perspective {
+        perspective: 1000px;
+    }
+    .transform-style-preserve-3d {
+        transform-style: preserve-3d;
+    }
+    .backface-hidden {
+        backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+        transform: rotateY(180deg);
+    }
+    .group-hover\:rotate-y-180:hover {
+        transform: rotateY(180deg);
     }
 </style>
-
-<div class="container py-4">
-    @*
-        Hero Banner
-    *@
-
-    <section class="hero-section mb-5 fade-in">
-        <img id="hero-image" src="/images/hero-background.webp" class="hero-image" alt="Hero background" />
-        <div class="hero-overlay"></div>
-
-        <div class="hero-text">
-            <h1 class="fw-bold hero-text-h1">
-                <span id="typewriter"></span>
-                <span aria-hidden="true" class="typewriter-spacer">
-                    <!-- Use longest phrase as a placeholder -->
-                    Fast. Reliable. Modern.
-                </span>
-            </h1>
-
-            <p>A modern marketplace to create products, manage orders, and communicate seamlessly.</p>
-
-            <NavLink class="btn btn-primary btn-lg" href="/marketplace">
-                Explore Products
-            </NavLink>
-        </div>
-    </section>
-
-    @*
-        Features
-    *@
-
-    <section class="features container py-5 fade-in">
-        <div class="row g-4 text-center">
-            <div class="col-sm-12 col-md-6 col-lg-4 d-flex">
-                <div class="flip-card w-100 h-100">
-                    <div class="flip-card-inner h-100">
-                        <div class="flip-card-front">
-                            <i class="bi bi-box-seam"></i>
-                            <h5 class="card-title fw-semibold mt-3">Create Products</h5>
-                            <p class="card-text">Easily create and manage your products in a modern dashboard.</p>
-                        </div>
-                        <div class="flip-card-back">
-                            <p class="card-text px-3">You can create digital or physical products, assign tags, and manage them efficiently.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-12 col-md-6 col-lg-4 d-flex">
-                <div class="flip-card w-100 h-100">
-                    <div class="flip-card-inner h-100">
-                        <div class="flip-card-front">
-                            <i class="bi bi-bag-check"></i>
-                            <h5 class="card-title fw-semibold mt-3">Manage Orders</h5>
-                            <p class="card-text">Track orders in real-time and keep your sales organized and efficient.</p>
-                        </div>
-                        <div class="flip-card-back">
-                            <p class="card-text px-3">Get real-time updates, sort by status, and keep everything in sync with minimal effort.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-12 col-md-8 offset-md-2 col-lg-4 offset-lg-0 d-flex">
-                <div class="flip-card w-100 h-100">
-                    <div class="flip-card-inner h-100">
-                        <div class="flip-card-front">
-                            <i class="bi bi-chat-dots"></i>
-                            <h5 class="card-title fw-semibold mt-3">Communicate</h5>
-                            <p class="card-text">Chat with your customers for seamless collaboration and service.</p>
-                        </div>
-                        <div class="flip-card-back">
-                            <p class="card-text px-3">Built-in messaging ensures you're always in touch and can provide great customer support.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    @*
-        About
-    *@
-
-    <section class="about container py-5 border-top fade-in">
-        <div class="row align-items-center g-5">
-            <div class="col-md-6">
-                <img src="/images/Dashboard Showcases/Analytics.png" alt="Analytics Showcase" />
-            </div>
-            <div class="col-md-6 text-area">
-                <h2>Business Analytics</h2>
-
-                <p class="fs-5">
-                    Gain deep insights into your sales and customer behavior with powerful analytics tools. Our dashboard offers
-                    clear visualizations to track key performance metrics. Make data-driven decisions with confidence and optimize
-                    your business strategies effectively.
-                </p>
-
-                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard">Get Started</NavLink>
-            </div>
-        </div>
-    </section>
-
-    <section class="about container py-5 fade-in">
-        <div class="row align-items-center g-5 flex-md-row-reverse">
-            <div class="col-md-6">
-                <img src="/images/Dashboard Showcases/Product Management.png" alt="Product Management Showcase" />
-            </div>
-            <div class="col-md-6 text-area">
-                <h2>Smart Product Management</h2>
-
-                <p class="fs-5">
-                    Manage your products efficiently with a streamlined interface designed for ease and speed. Add, edit, and
-                    organize your inventory while tracking stock levels in real time. Simplify your work-flow and stay ahead
-                    of demand with smart product tools.
-                </p>
-
-                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/products">Manage Products</NavLink>
-            </div>
-        </div>
-    </section>
-
-    <section class="about container py-5 fade-in">
-        <div class="row align-items-center g-5">
-            <div class="col-md-6">
-                <img src="/images/Dashboard Showcases/Order Management.png" alt="Order Management Showcase" />
-            </div>
-            <div class="col-md-6 text-area">
-                <h2>Easy Order Management</h2>
-
-                <p class="fs-5">
-                    Keep track of all your orders in one place with a simple, intuitive system. View order statuses, update
-                    details, and process requests seamlessly. Stay organized and ensure timely fulfillment to boost customer
-                    satisfaction.
-                </p>
-
-                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/orders/received">Manage Orders</NavLink>
-            </div>
-        </div>
-    </section>
-
-    <section class="about container py-5 fade-in">
-        <div class="row align-items-center g-5 flex-md-row-reverse">
-            <div class="col-md-6">
-                <img src="/images/Dashboard Showcases/Chats.png" alt="Chat Showcase" />
-            </div>
-            <div class="col-md-6 text-area">
-                <h2>Real-time Instant Communication</h2>
-
-                <p class="fs-5">
-                    Connect with your customers instantly through our built-in chat feature. Respond to inquiries, provide
-                    support, and collaborate in real time to build strong relationships. Communication has never been easier
-                    or more efficient.
-                </p>
-
-                <NavLink class="btn btn-outline-primary btn-lg mt-3" href="/dashboard/chats">View Chats</NavLink>
-            </div>
-        </div>
-    </section>
-</div>
-
-<script>
-    // Fade in
-
-    window.initFadeInSections = () => {
-        const sections = document.querySelectorAll('.fade-in');
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    // Keep the element visible after it fades in
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        sections.forEach(section => {
-            observer.observe(section);
-        });
-    };
-
-    // Flip cards
-
-    window.initFlipCards = () => {
-        document.querySelectorAll('.flip-card').forEach(card => {
-            card.addEventListener('click', function () {
-                if (window.innerWidth <= 768) {
-                    this.classList.toggle('flipped');
-                }
-            });
-        });
-    };
-
-    // Typewriters
-
-    window.startTyped = function (elementId, phrases) {
-        // If on mobile, use the first phrase (this is the primary
-        // phrase in the list)
-
-        if (window.innerWidth <= 768) {
-            const el = document.querySelector(elementId);
-            if (el && phrases.length > 0) {
-                el.innerHTML = phrases[0];
-            }
-            return;
-        }
-
-        // Show the primary phrase (first in the list) for 1 second
-
-        if (phrases.length > 0) {
-            phrases[0] += "^1000";
-        }
-
-        new Typed(elementId, {
-            strings: phrases,
-            typeSpeed: 50,
-            backSpeed: 25,
-            backDelay: 500,
-            loop: true,
-            html: true
-        });
-    }
-</script>
 
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("initFadeInSections");
-
-            await JS.InvokeVoidAsync("initFlipCards");
+            await JS.InvokeVoidAsync("initFadeIn");
 
             await JS.InvokeVoidAsync("startTyped", "#typewriter", new[] {
-                "Welcome to <span style='color:var(--primary);'>Orderly</span>.",
+                "Welcome to <span class='text-primary dark:text-primary'>Orderly</span>.",
                 "Fast. Reliable. Modern.",
                 "Your portfolio marketplace."
             });
         }
     }
+
+    // ***** Flip Cards ***** //
+
+    public class FlipCard
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Phrase { get; set; } = string.Empty;        // short front text
+        public string Description { get; set; } = string.Empty;   // long back text
+        public string Icon { get; set; } = string.Empty;
+        public bool IsFlipped { get; set; } = false;
+    }
+
+    private readonly List<FlipCard> FlipCards = new List<FlipCard>
+    {
+        new FlipCard
+        {
+            Title = "Easy Order Management",
+            Phrase = "Simplify your workflow",
+            Description = "Track, update, and fulfill orders with ease. Our dashboard allows you to manage multiple products and orders efficiently. Notifications and status updates keep you on top of every transaction.",
+            Icon = @"
+                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 3h18v18H3z' />
+                </svg>"
+        },
+        new FlipCard
+        {
+            Title = "Fast & Responsive",
+            Phrase = "Lightning quick performance",
+            Description = "Experience blazing speed with a frontend built on Blazor WebAssembly and optimized Tailwind CSS. Every action is near-instant, whether browsing orders or editing products. Works beautifully on any device.",
+            Icon = @"
+                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 10V3L4 14h7v7l9-11h-7z' />
+                </svg>"
+        },
+        new FlipCard
+        {
+            Title = "Modern Design",
+            Phrase = "Clean and minimal UI",
+            Description = "Enjoy a contemporary interface that is both visually appealing and highly functional. Dark and light modes adapt seamlessly. Every element, from cards to galleries, is designed to enhance usability.",
+            Icon = @"
+                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' />
+                </svg>"
+        }
+    };
+
+    // ***** Showcase Gallery ***** //
+
+    public class DashboardShowcaseItem
+    {
+        public string Img { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    private readonly List<DashboardShowcaseItem> DashboardShowcaseItems = new List<DashboardShowcaseItem>
+    {
+        new DashboardShowcaseItem
+        {
+            Img = "images/Dashboard Showcases/Analytics.png",
+            Title = "Overview Panel",
+            Description = "Get a complete snapshot of your orders, sales, and revenue in one central view. Track trends and key metrics effortlessly."
+        },
+        new DashboardShowcaseItem
+        {
+            Img = "images/Dashboard Showcases/Product Management.png",
+            Title = "Product Management",
+            Description = "Add, edit, and manage your products seamlessly. Organize items, set prices, and keep your catalog up to date with ease."
+        },
+        new DashboardShowcaseItem
+        {
+            Img = "images/Dashboard Showcases/Order Management.png",
+            Title = "Order Management",
+            Description = "Process and fulfill customer orders efficiently. Monitor statuses, send notifications, and keep everything organized in real time."
+        },
+        new DashboardShowcaseItem
+        {
+            Img = "images/Dashboard Showcases/Chats.png",
+            Title = "Customer Insights",
+            Description = "Engage with customers and gather insights through integrated chat tools. Understand user behavior to improve your service."
+        }
+    };
+
+    // ***** Injects ***** //
 
     [Inject]
     private IJSRuntime JS { get; set; }

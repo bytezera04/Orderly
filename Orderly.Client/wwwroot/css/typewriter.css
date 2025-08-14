@@ -1,0 +1,16 @@
+﻿
+#typewriter {
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.typewriter-spacer {
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+}
