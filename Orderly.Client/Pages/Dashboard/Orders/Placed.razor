@@ -15,46 +15,45 @@
 
 <PageTitle>Placed Orders - Orderly</PageTitle>
 
-<style>
-    .order-content-wrapper {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 0;
-        overflow: visible;
-    }
+<div class="flex flex-col w-full max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    @*
+        Title
+    *@
 
-    .order-content {
-        max-width: 1600px;
-        margin-right: 3rem;
-        margin-top: 2rem;
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: visible;
-    }
-
-    @@media (max-width: 991.98px) {
-        .order-content {
-            margin-right: 0;
-        }
-    }
-</style>
-
-<div class="order-content-wrapper m-4">
-    <div class="order-content">
-        <div class="mb-4 d-flex flex-column">
-            <div class="w-100 mb-4 d-flex justify-content-between align-items-center">
-                <h2 class="text-2xl font-bold text-[var(--fg)]">Manage Placed Orders</h2>
-            </div>
-        </div>
-
-        <OrderTable UserRole="Customer"
-                    CanEditOrders="false"
-                    CanCancelOrders="true"
-                    CanViewChat="true" />
+    <div class="flex flex-col sm:flex-row">
+        <h1 class="text-3xl font-bold mb-6 text-lightfg dark:text-darkfg">Manage Products</h1>
     </div>
+
+    @*
+        Additional Messages
+    *@
+
+    @if (IsDemoMode())
+    {
+        <div class="flex items-center gap-2 p-3 border-l-4 border-yellow-600
+                        bg-[#facc15] text-yellow-900
+                        dark:bg-yellow-900/20 dark:text-yellow-300 rounded-md">
+            <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+            <span>This site is in <strong>demo mode</strong>. Some functionality may be limited.</span>
+        </div>
+    }
+
+    @*
+        Order Table
+    *@
+
+    <OrderTable UserRole="Customer"
+                CanEditOrders="false"
+                CanCancelOrders="true"
+                CanViewChat="true" />
 </div>
+
+@code {
+    private bool IsDemoMode()
+    {
+        return _Config.GetValue<bool>("DemoMode") is true;
+    }
+
+    [Inject]
+    private IConfiguration _Config { get; set; }
+}

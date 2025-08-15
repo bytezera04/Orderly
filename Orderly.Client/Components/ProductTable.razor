@@ -76,12 +76,13 @@
                             @onclick="() => OpenViewModal(product)">
 
                             <td class="px-6 truncate font-bold text-primary">#@product.PublicId</td>
-                            <td class="px-6 truncate">@product.Name</td>
+                            <td class="px-6 truncate">@StringHelper.Truncate(product.Name, 30)</td>
                             <td class="px-6 truncate">@product.Category</td>
                             <td class="px-6 truncate">£@product.Price</td>
                             <td class="px-6 truncate">@product.Stock</td>
                             <td class="px-6 truncate">@product.Sales</td>
                             <td class="px-6 truncate">@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+
                             @if (DisplayActionsColumn())
                             {
                                 <td class="px-6">
@@ -142,6 +143,8 @@
 
                 @if (DisplayActionsColumn())
                 {
+                    <!-- Action Controls -->
+
                     <div class="mt-3 flex gap-3">
                         @if (CanEditProducts)
                         {
@@ -445,14 +448,6 @@
         });
 
         await _HubConnection.StartAsync();
-    }
-
-    public async ValueTask Dispose()
-    {
-        if (_HubConnection is not null)
-        {
-            await _HubConnection.DisposeAsync();
-        }
     }
 
     // ***** View Product Modal ***** //

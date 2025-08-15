@@ -1,184 +1,189 @@
-﻿@using Microsoft.AspNetCore.SignalR.Client
+﻿
+@using Microsoft.AspNetCore.SignalR.Client
 @using Orderly.Client.Services
 @using Orderly.Shared.Dtos
 @using System.Globalization
 @using Orderly.Shared.Helpers
 
-<link rel="stylesheet" href="css/table.css" />
+@implements IAsyncDisposable
 
-<style>
-    :root {
-        --table-height: calc((var(--row-height) * @(@PageSize)) + var(--col-height) + 2px);
-    }
+@namespace Orderly.Client.Components
 
-    .table-wrapper {
-        height: var(--table-height);
-    }
+<div class="order-table flex flex-col w-full space-y-4">
+    @*
+        Search Inputs
+    *@
 
-    .order-table tr {
-        cursor: pointer;
-    }
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <!-- Search Bar-->
 
-    .order-table td.public-id {
-        color: var(--primary) !important;
-    }
-
-    .order-table th.public-id,
-    .order-table td.public-id {
-        width: 10%;
-    }
-
-    .order-table th.other-user,
-    .order-table td.other-user {
-        width: 25%;
-    }
-
-    .order-table th.product-name,
-    .order-table td.product-name {
-        width: 20%;
-    }
-
-    .order-table th.status,
-    .order-table td.status {
-        width: 15%;
-    }
-
-    .order-table th.quantity,
-    .order-table td.quantity {
-        width: 10%;
-    }
-
-    .order-table th.price,
-    .order-table td.price {
-        width: 10%;
-    }
-
-    .order-table th.created-at,
-    .order-table td.created-at {
-        width: 10%;
-    }
-
-    .order-table th.actions,
-    .order-table td.actions {
-        width: 10%;
-    }
-</style>
-
-<div class="table-container order-table-container w-100">
-    <div class="filters">
         <input type="text"
-               placeholder="Search orders..."
-               @oninput="OnSearchInput"
-               value="@SearchText"
-               class="search-input"
-               aria-label="Search orders" />
+               placeholder="Search products..."
+               class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+               @oninput="OnSearchInput" />
 
-        <select @bind="SelectedStatus" class="category-select form-select" aria-label="Filter by status">
+        <!-- Status Dropdown -->
+
+        <select class="w-full sm:w-auto px-4 py-2 border rounded-md h-[calc(2.5rem)] dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+                @onchange=OnStatusInput>
+
             <option value="">All Statuses</option>
-            @foreach (var cat in Statuses)
+
+            @foreach (var status in Statuses)
             {
-                <option value="@cat">@cat</option>
+                <option value="@status">@status</option>
             }
         </select>
     </div>
 
-    <div class="table-wrapper order-table-wrapper no-scroll">
-        <table class="shared-table order-table table-stripped table-hover">
-            <thead>
+    @*
+        Order Table (Desktop)
+    *@
+
+    <div class="overflow-hidden border border-lightborder dark:border-darkborder rounded-lg shadow hidden md:block">
+        <table class="min-w-full divide-y divide-lightborder dark:divide-darkborder">
+            <thead class="bg-lightcard dark:bg-darkcard">
                 <tr>
-                    <th scope="col" class="public-id">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg">
+                        ID
+                    </th>
 
                     @foreach (var col in Columns)
                     {
-                        <th @onclick="@(() => SortBy(col.Property))" class="sortable @(GetSortClass(col.Property)) @(GetColumnClass(col.Property))" scope="col">
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg cursor-pointer select-none"
+                            @onclick="() => SortBy(col.Property)">
                             @col.Title
-                            <span class="sort-indicator">@GetSortIndicator(col.Property)</span>
+                            <span>@GetSortIndicator(col.Property)</span>
                         </th>
                     }
 
-                    @*
-                        Add management controls for orders
-                    *@
-
                     @if (DisplayActionsColumn())
                     {
-                        <th class="actions-header actions">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg">
+                            Actions
+                        </th>
                     }
                 </tr>
             </thead>
-            <tbody>
-                @if (IsLoading)
+            <tbody class="bg-lightbg dark:bg-darkbg divide-y divide-lightborder dark:divide-darkborder text-lightfg dark:text-darkfg">
+                @for (int i = 0; i < PageSize; i++)
                 {
-                    <tr><td colspan="@ColSpanCount" class="loading-cell">Loading...</td></tr>
-                }
-                else if (!PagedOrders.Any())
-                {
-                    <tr><td colspan="@ColSpanCount + 1" class="loading-cell">No orders found.</td></tr>
-                }
-                else
-                {
-                    @foreach (var order in PagedOrders)
+                    if (i < PagedOrders.Count())
                     {
-                        <tr @ondblclick="() => OpenViewModal(order)" @ontouchstart="() => OpenViewModal(order)">
-                            <td class="public-id"><strong>#@order.PublicId</strong></td>
-                            <td class="other-user">@GetOtherUserName(order)</td>
-                            <td class="product-name">@(order.Product?.Name ?? "(Deleted Product)")</td>
-                            <td class="status">@order.Status</td>
-                            <td class="quantity">@order.Quantity</td>
-                            <td class="price">@order.Price.ToString("C", CultureInfo.CurrentCulture)</td>
-                            <td class="created-at">@DateTimeHelper.ToReadableDateShort(order.CreatedAt)</td>
+                        var order = PagedOrders.ElementAt(i);
 
-                            @*
-                                Display actions
-                            *@
+                        <tr class="hover:bg-lightcard/20 dark:hover:bg-darkcard/20 transition cursor-pointer h-[64px]"
+                            @onclick="() => OpenViewModal(order)">
+
+                            <td class="px-6 truncate font-bold text-primary">#@order.PublicId</td>
+                            <td class="px-6 truncate">@StringHelper.Truncate(order.ProductOwnerDisplayName, 15)</td>
+                            <td class="px-6 truncate">@StringHelper.Truncate(order.ProductDisplayName, 25)</td>
+                            <td class="px-6 truncate">@order.Status</td>
+                            <td class="px-6 truncate">@order.Quantity</td>
+                            <td class="px-6 truncate">£@order.Price</td>
+                            <td class="px-6 truncate">@DateTimeHelper.ToReadableDateShort(order.CreatedAt)</td>
 
                             @if (DisplayActionsColumn())
                             {
-                                <td class="actions-cell actions">
-                                    @*
-                                        Display management controls for this order
-                                    *@
+                                <!-- Action Controls -->
 
-                                    @if (CanEditOrders || CanCancelOrders)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenManageModal(order)" title="Manage">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </button>
-                                    }
+                                <td class="px-6">
+                                    <div class="flex items-center justify-center gap-3">
+                                        @if (CanEditOrders || CanCancelOrders)
+                                        {
+                                            <button class="text-blue-500 hover:text-blue-600 transition text-lg"
+                                                    @onclick="@(() => OpenManageModal(order))">
+                                                <i class="bi bi-gear-fill"></i>
+                                            </button>
+                                        }
 
-                                    @*
-                                        Display chat link
-                                    *@
-
-                                    @if (CanViewChat)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToChat(order)" title="View Chat">
-                                            <i class="bi bi-chat-fill"></i>
-                                        </button>
-                                    }
+                                        @if (CanViewChat)
+                                        {
+                                            <button class="text-green-500 hover:text-green-600 transition text-lg"
+                                                    @onclick="() => NavigateToChat(order)">
+                                                <i class="bi bi-chat-dots-fill"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             }
                         </tr>
                     }
-
-                    @for (int i = PagedOrders.Count(); i < PageSize; i++)
+                    else
                     {
-                        <tr><td colspan="@Columns.Count + 1" class="filler-row"></td></tr>
+                        <tr class="h-[64px]">
+                            <td colspan="@Columns.Count + (DisplayActionsColumn() ? 1 : 0)"></td>
+                        </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
 
-    <div class="pagination">
-        <button class="page-btn" disabled="@IsFirstPage" @onclick="PreviousPage">
-            <i class="fas fa-chevron-left"></i> Previous
+    @*
+        Order Cards (Mobile)
+    *@
+
+    <div class="flex flex-col space-y-4 md:hidden">
+        @foreach (var order in PagedOrders)
+        {
+            <div class="p-4 bg-lightcard dark:bg-darkcard rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                 @onclick="() => OpenViewModal(order)">
+
+                <div class="flex justify-between items-start">
+                    <span class="font-bold text-primary">#@order.PublicId</span>
+                    @if (DisplayActionsColumn())
+                    {
+                        <div class="flex items-center gap-3">
+                            @if (CanEditOrders || CanCancelOrders)
+                            {
+                                <button @onclick="() => OpenManageModal(order)"
+                                        @onclick:stopPropagation="true"
+                                        class="text-blue-500 hover:text-blue-600 transition text-lg">
+                                    <i class="bi bi-gear-fill"></i>
+                                </button>
+                            }
+
+                            @if (CanViewChat)
+                            {
+                                <button @onclick="() => NavigateToChat(order)"
+                                        @onclick:stopPropagation="true"
+                                        class="text-green-500 hover:text-green-600 transition text-lg">
+                                    <i class="bi bi-chat-dots-fill"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="mt-2 space-y-1 text-sm text-lightfg dark:text-darkfg">
+                    <div><span class="font-medium">Owner:</span> @order.ProductOwnerDisplayName</div>
+                    <div><span class="font-medium">Product:</span> @order.ProductDisplayName</div>
+                    <div><span class="font-medium">Status:</span> @order.Status</div>
+                    <div><span class="font-medium">Quantity:</span> @order.Quantity</div>
+                    <div><span class="font-medium">Price:</span> @order.Price</div>
+                    <div><span class="font-medium">Created:</span> @DateTimeHelper.ToReadableDateShort(order.CreatedAt)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @*
+        Pagination
+    *@
+
+    <div class="flex items-center justify-center gap-4 mt-2">
+        <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                @onclick="PreviousPage" disabled="@IsFirstPage">
+            <i class="bi bi-chevron-left text-lg"></i>
         </button>
 
-        <span class="page-status">Page @Page of @TotalPages</span>
+        <span class="text-sm text-lightfg dark:text-darkfg">Page @Page of @TotalPages</span>
 
-        <button class="page-btn" disabled="@IsLastPage" @onclick="NextPage">
-            Next <i class="fas fa-chevron-right"></i>
+        <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                @onclick="NextPage" disabled="@IsLastPage">
+            <i class="bi bi-chevron-right text-lg"></i>
         </button>
     </div>
 </div>
@@ -331,6 +336,15 @@
         Page = 1;
 
         SearchText = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void OnStatusInput(ChangeEventArgs e)
+    {
+        // Reset page number and set selected status
+
+        Page = 1;
+
+        SelectedStatus = e.Value?.ToString() ?? string.Empty;
     }
 
     private string GetOtherUserName(OrderDto order)
@@ -520,6 +534,19 @@
         SelectedOrder = null;
         IsManageModalVisible = false;
     }
+
+    // ***** Misc ***** //
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_HubConnection is not null)
+        {
+            await _HubConnection.StopAsync();
+            await _HubConnection.DisposeAsync();
+        }
+    }
+
+    // ***** Injects ***** //
 
     [Inject]
     private OrderService _OrderService { get; set; }
