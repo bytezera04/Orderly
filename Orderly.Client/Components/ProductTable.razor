@@ -8,175 +8,107 @@
 
 @namespace Orderly.Client.Components
 
-<link rel="stylesheet" href="/css/table.css" />
-
-<style>
-    :root {
-        --table-height: calc((var(--row-height) * @(@PageSize)) + var(--col-height) + 2px);
-    }
-
-    .table-wrapper {
-        height: var(--table-height);
-    }
-
-    .product-table tr {
-        cursor: pointer;
-    }
-
-    .product-table td.public-id {
-        color: var(--primary) !important;
-    }
-
-    .product-table th.public-id,
-    .product-table td.public-id {
-        width: 10%;
-    }
-
-    .product-table th.name,
-    .product-table td.name {
-        width: 20%;
-    }
-
-    .product-table th.category,
-    .product-table td.category {
-        width: 20%;
-    }
-
-    .product-table th.price,
-    .product-table td.price {
-        width: 10%;
-    }
-
-    .product-table th.stock,
-    .product-table td.stock {
-        width: 10%;
-    }
-
-    .product-table th.sales,
-    .product-table td.sales {
-        width: 10%;
-    }
-
-    .product-table th.created-at,
-    .product-table td.created-at {
-        width: 10%;
-    }
-
-    .product-table th.actions,
-    .product-table td.actions {
-        width: 10%;
-    }
-</style>
-
-<div class="table-container product-table-container w-100">
+<div class="product-table flex flex-col w-full space-y-4">
     @*
-        Filters
+        Search Inputs
     *@
 
-    <div class="filters">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <!-- Search Bar-->
+
         <input type="text"
                placeholder="Search products..."
-               @oninput="OnSearchInput"
-               value="@SearchText"
-               class="search-input"
-               aria-label="Search products" />
+               class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+               @oninput="OnSearchInput" />
 
-        <select @bind="SelectedCategory" class="category-select form-select" aria-label="Filter by category">
+        <!-- Category Dropdown -->
+
+        <select class="w-full sm:w-auto px-4 py-2 border rounded-md h-[calc(2.5rem)] dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+                @onchange=OnCategoryInput>
+
             <option value="">All Categories</option>
-            @foreach (var cat in Categories)
+
+            @foreach (var category in Categories)
             {
-                <option value="@cat">@cat</option>
+                <option value="@category">@category</option>
             }
         </select>
     </div>
 
     @*
-        Main Table
+        Product Table (Desktop)
     *@
 
-    <div class="table-wrapper product-table-wrapper no-scroll">
-        <table class="table product-table table-striped table-hover">
-            <thead>
+    <div class="overflow-hidden border border-lightborder dark:border-darkborder rounded-lg shadow hidden md:block">
+        <table class="min-w-full divide-y divide-lightborder dark:divide-darkborder">
+            <thead class="bg-lightcard dark:bg-darkcard">
                 <tr>
-                    <th scope="col" class="public-id">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg">
+                        ID
+                    </th>
 
                     @foreach (var col in Columns)
                     {
-                        <th @onclick="@(() => SortBy(col.Property))" class="sortable @(GetSortClass(col.Property)) @(GetColumnClass(col.Property))" scope="col">
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg cursor-pointer select-none"
+                            @onclick="() => SortBy(col.Property)">
                             @col.Title
-                            <span class="sort-indicator {@GetColumnClass(col.Title)}">
-                                @GetSortIndicator(col.Property)
-                            </span>
+                            <span>@GetSortIndicator(col.Property)</span>
                         </th>
                     }
 
-                    @*
-                        Add management controls for this product
-                    *@
-
                     @if (DisplayActionsColumn())
                     {
-                        <th class="actions-header actions" scope="col">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-lightfg dark:text-darkfg">
+                            Actions
+                        </th>
                     }
                 </tr>
             </thead>
-            <tbody>
-                @*
-                    Products
-                *@
-
-                @if (IsLoading)
+            <tbody class="bg-lightbg dark:bg-darkbg divide-y divide-lightborder dark:divide-darkborder text-lightfg dark:text-darkfg">
+                @for (int i = 0; i < PageSize; i++)
                 {
-                    <tr>
-                        <td colspan="@(Columns.Count + (@DisplayActionsColumn() ? 1 : 0))"
-                            class="loading-cell">
-                            Loading products...
-                        </td>
-                    </tr>
-                }
-                else if (!PagedProducts.Any())
-                {
-                    <tr>
-                        <td colspan="@(Columns.Count + (@DisplayActionsColumn() ? 1 : 0))"
-                            class="no-data-cell">
-                            No products found. Create one to get started!
-                        </td>
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var product in PagedProducts)
+                    if (i < PagedProducts.Count())
                     {
-                        <tr @ondblclick="() => OpenViewModal(product)" @ontouchstart="() => OpenViewModal(product)">
-                            <td class="public-id"><strong>#@product.PublicId</strong></td>
-                            <td class="name">@product.Name</td>
-                            <td class="category">@product.Category</td>
-                            <td class="price">@product.Price.ToString("C")</td>
-                            <td class="stock">@product.Stock</td>
-                            <td class="sales">@product.Sales</td>
-                            <td class="created-at">@DateTimeHelper.ToReadableDateShort(product.CreatedAt)</td>
+                        var product = PagedProducts.ElementAt(i);
 
-                            @*
-                                Add management controls for products
-                            *@
+                        <tr class="hover:bg-lightcard/20 dark:hover:bg-darkcard/20 transition cursor-pointer h-[64px]"
+                            @onclick="() => OpenViewModal(product)">
 
+                            <td class="px-6 truncate font-bold text-primary">#@product.PublicId</td>
+                            <td class="px-6 truncate">@product.Name</td>
+                            <td class="px-6 truncate">@product.Category</td>
+                            <td class="px-6 truncate">£@product.Price</td>
+                            <td class="px-6 truncate">@product.Stock</td>
+                            <td class="px-6 truncate">@product.Sales</td>
+                            <td class="px-6 truncate">@product.CreatedAt.ToString("dd/MM/yyyy")</td>
                             @if (DisplayActionsColumn())
                             {
-                                <td class="actions-cell actions">
-                                    @if (CanEditProducts)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenEditModal(product)" title="Edit">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </button>
-                                    }
-                                    @if (CanDeleteProducts)
-                                    {
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => OpenDeleteModal(product)" title="Delete">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </button>
-                                    }
+                                <td class="px-6">
+                                    <div class="flex items-center justify-center gap-3">
+                                        @if (CanEditProducts)
+                                        {
+                                            <button class="text-blue-500 hover:text-blue-600 transition text-lg"
+                                                    @onclick="@(() => OpenEditModal(product))">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+                                        }
+                                        @if (CanDeleteProducts)
+                                        {
+                                            <button class="text-red-500 hover:text-red-600 transition text-lg"
+                                                    @onclick="@(() => OpenDeleteModal(product))">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             }
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr class="h-[64px]">
+                            <td colspan="@Columns.Count + (DisplayActionsColumn() ? 1 : 0)"></td>
                         </tr>
                     }
                 }
@@ -185,13 +117,68 @@
     </div>
 
     @*
+        Product Cards (Mobile)
+    *@
+
+    <div class="space-y-3 md:hidden">
+        @foreach (var product in PagedProducts)
+        {
+            <div class="p-4 bg-lightcard dark:bg-darkcard rounded-lg shadow hover:shadow-md transition"
+                @onclick="() => OpenViewModal(product)">
+
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold text-lightfg dark:text-darkfg">@product.Name</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">@product.Category</p>
+                    </div>
+                    <p class="text-primary font-semibold">£@product.Price</p>
+                </div>
+
+                <div class="mt-2 text-sm text-lightfg dark:text-darkfg">
+                    <p><span class="font-medium">Stock:</span> @product.Stock</p>
+                    <p><span class="font-medium">Sales:</span> @product.Sales</p>
+                    <p><span class="font-medium">Created:</span> @DateTimeHelper.ToReadableDateShort(product.CreatedAt)</p>
+                </div>
+
+                @if (DisplayActionsColumn())
+                {
+                    <div class="mt-3 flex gap-3">
+                        @if (CanEditProducts)
+                        {
+                            <button class="px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600"
+                                    @onclick="@(() => OpenEditModal(product))">
+                                Edit
+                            </button>
+                        }
+                        @if (CanDeleteProducts)
+                        {
+                            <button class="px-3 py-1 rounded-md bg-red-500 text-white text-sm hover:bg-red-600"
+                                    @onclick="@(() => OpenDeleteModal(product))">
+                                Delete
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @*
         Pagination
     *@
 
-    <div class="pagination">
-        <button class="btn btn-outline-secondary btn-sm" @onclick="PreviousPage" disabled="@IsFirstPage" aria-label="Previous page">Previous</button>
-        <span>Page @Page of @TotalPages</span>
-        <button class="btn btn-outline-secondary btn-sm" @onclick="NextPage" disabled="@IsLastPage" aria-label="Next page">Next</button>
+    <div class="flex items-center justify-center gap-4 mt-2">
+        <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                @onclick="PreviousPage" disabled="@IsFirstPage">
+            <i class="bi bi-chevron-left text-lg"></i>
+        </button>
+
+        <span class="text-sm text-lightfg dark:text-darkfg">Page @Page of @TotalPages</span>
+
+        <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                @onclick="NextPage" disabled="@IsLastPage">
+            <i class="bi bi-chevron-right text-lg"></i>
+        </button>
     </div>
 </div>
 
@@ -316,13 +303,22 @@
         IsLoading = false;
     }
 
-    private async Task OnSearchInput(ChangeEventArgs e)
+    private void OnSearchInput(ChangeEventArgs e)
     {
         // Reset page number and set search text
 
         Page = 1;
 
         SearchText = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void OnCategoryInput(ChangeEventArgs e)
+    {
+        // Reset page number and set selected category
+
+        Page = 1;
+
+        SelectedCategory = e.Value?.ToString() ?? string.Empty;
     }
 
     private string GetColumnClass(string columnName)

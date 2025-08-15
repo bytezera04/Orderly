@@ -15,67 +15,39 @@
 
 <PageTitle>Products - Orderly</PageTitle>
 
-<style>
-    .product-content-wrapper {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 0;
-        overflow: visible;
-    }
+<div class="flex flex-col w-full max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    @*
+        Title
+    *@
 
-    .product-content {
-        max-width: 1600px;
-        margin-right: 3rem;
-        margin-top: 2rem;
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: visible;
-    }
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 class="text-3xl font-bold mb-6 text-lightfg dark:text-darkfg">Manage Products</h1>
 
-    @@media (max-width: 991.98px) {
-        .product-content {
-            margin-right: 0;
-        }
-    }
-</style>
-
-<div class="product-content-wrapper m-4">
-    <div class="product-content">
-        @*
-            Title
-        *@
-
-        <div class="mb-4 d-flex flex-column">
-            <div class="w-100 mb-4 d-flex justify-content-between align-items-center">
-                <h2 class="text-2xl font-bold text-[var(--fg)]">Manage Products</h2>
-                <button class="btn btn-primary" @onclick="ShowCreateModal">Add Product</button>
-            </div>
-        </div>
-
-        @*
-            Additional Messages
-        *@
-
-        @if (IsDemoMode())
-        {
-            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>
-                <span>This site is in <strong>demo mode</strong>. Products you create are only visible in your personal dashboard.</span>
-            </div>
-        }
-
-        @*
-            Product Table
-        *@
-
-        <ProductTable CanEditProducts="true"
-                      CanDeleteProducts="true" />
+        <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition"
+                @onclick="ShowCreateModal">
+            Add Product
+        </button>
     </div>
+
+    @*
+        Additional Messages
+    *@
+
+    @if (IsDemoMode())
+    {
+        <div class="flex items-center gap-2 p-3 border-l-4 border-yellow-600
+                    bg-[#facc15] text-yellow-900
+                    dark:bg-yellow-900/20 dark:text-yellow-300 rounded-md">
+            <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+            <span>This site is in <strong>demo mode</strong>. Products you create are only visible in your personal dashboard.</span>
+        </div>
+    }
+
+    @*
+        Product Table
+    *@
+
+    <ProductTable CanEditProducts="true" CanDeleteProducts="true" />
 </div>
 
 <!-- Product Create Modal -->
