@@ -5,203 +5,216 @@
 @layout MainLayout
 
 <style>
-    .dashboard-main {
-        max-width: 100%;
-        min-height: calc(100vh - var(--navbar-height));
-        position: relative;
-        z-index: 1;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
+    .nav-link.active {
+        background-color: #3B82F6;
+        color: white;
     }
 
-    .sidebar {
-        width: 220px;
-        min-width: 220px;
-        max-width: 220px;
-        background-color: var(--nav-bg);
-        border-right: 2px solid var(--border);
-        position: relative;
-        transition: transform 0.3s ease;
-        overflow-y: auto;
-        z-index: 1050;
-    }
-
-    @@media (max-width: 991.98px) {
-        .sidebar {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            width: 100vw;
-            height: calc(100vh - 70px);
-            max-width: 100vw;
-            transform: translateX(-100%);
-            box-shadow: 3px 0 12px rgba(0,0,0,0.5);
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
-        }
-    }
-
-    .sidebar h4 {
-        font-weight: 600;
-        color: var(--fg);
-    }
-
-    .sidebar .nav-link {
-        color: var(--fg);
-        font-weight: 500;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        transition: background 0.2s ease, color 0.2s ease;
-        display: flex;
-        align-items: center;
-    }
-
-    .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-        text-decoration: none;
-    }
-
-    [data-theme="light"] .sidebar .nav-link:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .sidebar .nav-link.active {
-        background-color: transparent;
-        color: var(--primary);
-    }
-
-    .sidebar .nav-link.active i {
-        color: var(--primary);
-    }
-
-    .sidebar .nav-link i {
-        margin-right: 0.5rem;
-        font-size: 1.2rem;
-    }
-
-    .orders-dropdown-toggle {
-        cursor: pointer;
-        user-select: none;
-        justify-content: space-between;
-    }
-
-    .orders-dropdown-toggle i.arrow {
-        transition: transform 0.3s ease;
-    }
-
-    .orders-dropdown-toggle[aria-expanded="true"] i.arrow {
-        transform: rotate(90deg);
-    }
-
-    .orders-submenu {
-        list-style: none;
-        padding-left: 1.5rem;
-        margin: 0.25rem 0 0 0;
-    }
-
-    .orders-submenu .nav-link {
-        padding: 0.5rem 1rem;
-        font-weight: 400;
-        font-size: 0.9rem;
-    }
-
-    .dashboard-main {
-        max-width: 100%;
-        position: relative;
-        z-index: 1;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .sidebar-toggle-btn {
-        position: fixed;
-        top: 80px;
-        left: 12px;
-        z-index: 1101;
-        display: none;
-    }
-
-    @@media (max-width: 991.98px) {
-        .sidebar-toggle-btn {
-            display: inline-block;
-        }
-
-        .dashboard-main {
-            padding-top: 60px;
-        }
-    }
-
-    /*
-        Dashboard does not display site footer
-    */
-
-    .site-footer {
-        display: none !important;
+    .nav-link:hover {
+        text-decoration: underline;
+        color: #3B82F6;
     }
 </style>
 
-<div class="dashboard-layout d-flex">
-    <nav class="sidebar p-3 @(IsSidebarExpanded ? "show" : "")" aria-label="Dashboard Sidebar">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <NavLink class="nav-link" href="/dashboard" Match="NavLinkMatch.All">
-                    <i class="bi bi-speedometer2"></i> Overview
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="/dashboard/products">
-                    <i class="bi bi-box-seam"></i> Products
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link orders-dropdown-toggle d-flex align-items-center" @onclick="ToggleOrders" aria-expanded="@IsOrdersExpanded" role="button" tabindex="0">
-                    <span><i class="bi bi-bag-check"></i> Orders</span>
-                    <i class="bi bi-caret-right-fill arrow"></i>
-                </a>
-                @if (IsOrdersExpanded)
-                {
-                    <ul class="orders-submenu">
-                        <li>
-                            <NavLink class="nav-link" href="/dashboard/orders/placed">
-                                <i class="bi bi-cart-check"></i> Placed
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink class="nav-link" href="/dashboard/orders/received">
-                                <i class="bi bi-inbox-fill"></i> Received
-                            </NavLink>
-                        </li>
-                    </ul>
-                }
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="/dashboard/chats">
-                    <i class="bi bi-chat-dots"></i> Chats
-                </NavLink>
-            </li>
-        </ul>
-    </nav>
+<div class="dashboard-layout flex flex-1 pt-[4rem]">
+    @if (!IsDesktop && IsSidebarOpen)
+    {
+        <div class="fixed inset-0 bg-black/40 z-40" @onclick="CloseSidebar"></div>
+    }
 
-    <main class="dashboard-main">
-        @Body
+
+    @*
+        Sidebar
+    *@
+
+    <aside class="@($"dashboard-sidebar flex flex-col bg-lightcard dark:bg-darkcard text-lightfg dark:text-darkfg shadow-lg transition-all duration-300 z-50 fixed top-16 left-0 h-[calc(100%-4rem)] {(IsSidebarOpen ? "w-64" : "w-0 overflow-hidden")}")">
+        <nav class="flex flex-col gap-3 mt-4 px-2">
+            <NavLink href="/dashboard/overview"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300
+                            hover:text-primary dark:hover:text-primary"
+                     activeClass="bg-primary text-white">
+                <i class="bi bi-speedometer2 text-lg"></i>
+                <span>Overview</span>
+            </NavLink>
+
+            <NavLink href="/dashboard/products"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300
+                            hover:text-primary dark:hover:text-primary"
+                     activeClass="bg-primary text-white">
+                <i class="bi bi-box-seam text-lg"></i>
+                <span>Products</span>
+            </NavLink>
+
+            <div>
+                <button @onclick="ToggleOrdersDropdown"
+                        class="flex items-center justify-between w-full px-3 py-2 rounded-lg text-lg font-medium
+                           hover:text-primary dark:hover:text-primary transition-colors duration-300">
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-basket text-lg"></i>
+                        <span>Orders</span>
+                    </div>
+                    <i class="@($"bi {(OrdersExpanded ? "bi-chevron-up" : "bi-chevron-down")}")"></i>
+                </button>
+
+                <div class="@($"overflow-hidden transition-all duration-300 gap-3 pl-6 {(OrdersExpanded ? "max-h-40" : "max-h-0")}")">
+                    <NavLink href="/dashboard/orders/placed"
+                             class="flex items-center gap-2 px-3 py-1 rounded-lg text-base font-medium transition-colors duration-300
+                                hover:text-primary dark:hover:text-primary"
+                             activeClass="bg-primary text-white">
+                        <i class="bi bi-cart-check-fill text-base"></i>
+                        Placed
+                    </NavLink>
+                    <NavLink href="/dashboard/orders/received"
+                             class="flex items-center gap-2 px-3 py-1 rounded-lg text-base font-medium transition-colors duration-300
+                                hover:text-primary dark:hover:text-primary"
+                             activeClass="bg-primary text-white">
+                        <i class="bi bi-box-arrow-in-down text-base"></i>
+                        Received
+                    </NavLink>
+                </div>
+            </div>
+
+            <NavLink href="/dashboard/chats"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300
+                        hover:text-primary dark:hover:text-primary"
+                     activeClass="bg-primary text-white">
+                <i class="bi bi-chat-dots text-lg"></i>
+                <span>Chats</span>
+            </NavLink>
+        </nav>
+    </aside>
+
+    @*
+        Main Content
+    *@
+
+    <main class="@MainClasses">
+        @*
+            Mobile Sidebar Toggle
+        *@
+
+        <div class="p-4 border-b border-lightborder dark:border-darkborder md:hidden bg-lightbg dark:bg-darkbg">
+            <button @onclick="ToggleSidebar"
+                    class="flex items-center gap-2 text-lightfg dark:text-darkfg hover:opacity-75">
+                <i class="bi bi-list text-2xl"></i>
+                <span class="font-semibold">Menu</span>
+            </button>
+        </div>
+
+        @*
+            Body
+        *@
+
+        <div class="p-6">
+            @Body
+        </div>
     </main>
-
-    <button class="btn btn-primary sidebar-toggle-btn" @onclick="ToggleSidebar" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-    </button>
 </div>
 
 @code {
-    private bool IsOrdersExpanded = true;
-    private bool IsSidebarExpanded = false;
+    protected override async Task OnInitializedAsync()
+    {
+        // Try to get width immediately before rendering for correct initial layout
+        if (JS is IJSInProcessRuntime inProcessJs)
+        {
+            int width = inProcessJs.Invoke<int>("windowInterop.getWidth");
+            UpdateDesktopState(width);
+        }
+        else
+        {
+            // Fallback if in-process runtime not available (e.g. prerender)
+            int width = await JS.InvokeAsync<int>("windowInterop.getWidth");
+            UpdateDesktopState(width);
+        }
+    }
 
-    private void ToggleOrders() => IsOrdersExpanded = !IsOrdersExpanded;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Register resize listener after initial render
+            await JS.InvokeVoidAsync(
+                "windowInterop.registerResizeHandler",
+                DotNetObjectReference.Create(this)
+            );
+        }
+    }
 
-    private void ToggleSidebar() => IsSidebarExpanded = !IsSidebarExpanded;
+    private string GetNavLinkClasses(string path)
+    {
+        bool isActive = IsLinkActive(path);
+        return $"flex items-center gap-2 px-4 py-2 rounded-md relative font-medium text-[1.05rem] transition-all duration-200 " +
+               $"{(isActive ? "bg-[var(--primary)] text-[var(--fg)]" : "text-lightfg dark:text-darkfg")} " +
+               $"hover:text-[var(--primary)]";
+    }
+
+    private bool IsLinkActive(string path)
+    {
+        return _NavigationManager.Uri.Contains(path, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string MainClasses
+    {
+        get
+        {
+            return $"flex-1 transition-all duration-300 {(IsDesktop ? "ml-64" : "")} p-6 lg:p-12 bg-lightbg dark:bg-darkbg";
+        }
+    }
+
+    // ***** Desktop States ***** //
+
+    private bool IsDesktop = false;
+
+    [JSInvokable]
+    public void UpdateWidth(int width)
+    {
+        UpdateDesktopState(width);
+
+        StateHasChanged();
+    }
+
+    private void UpdateDesktopState(int width)
+    {
+        IsDesktop = width >= 768;
+
+        if (IsDesktop)
+        {
+            IsSidebarOpen = true;
+        }
+        else
+        {
+            IsSidebarOpen = false;
+        }
+    }
+
+    // ***** Sidebar ***** //
+
+    private bool IsSidebarOpen = false;
+
+    private void ToggleSidebar()
+    {
+        IsSidebarOpen = !IsSidebarOpen;
+    }
+
+    private void CloseSidebar()
+    {
+        IsSidebarOpen = false;
+    }
+
+    // ***** Sidebar Dropdowns ***** //
+
+    private bool OrdersExpanded = true;
+
+    private void ToggleOrdersDropdown()
+    {
+        OrdersExpanded = !OrdersExpanded;
+    }
+
+    // ***** Injects ***** //
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
 }

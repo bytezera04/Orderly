@@ -74,3 +74,15 @@
     width: 3rem;
     height: 3rem;
 }
+
+:root {
+    --money-green: #22c55e; /* light green for light mode */
+}
+
+[data-theme="dark"] {
+    --money-green: #16a34a; /* darker green for dark mode */
+}
+
+.text-money {
+    color: var(--money-green);
+}
