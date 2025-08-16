@@ -28,12 +28,13 @@ namespace Orderly.Server.Controllers
             decimal? minPrice,
             decimal? maxPrice,
             bool? inStockOnly,
+            string sortBy,
             int page = 1
         )
         {
             // Load the products for this page
 
-            const int PAGE_SIZE = 16;
+            const int PAGE_SIZE = 12;
 
             var (totalCount, products) = await _MarketplaceService.GetProducts(
                 searchText,
@@ -41,15 +42,20 @@ namespace Orderly.Server.Controllers
                 minPrice,
                 maxPrice,
                 inStockOnly,
+                sortBy,
                 page,
                 PAGE_SIZE
             );
+
+            System.Diagnostics.Debug.WriteLine($"Products: {products.Count}");
 
             // Respond with results
 
             List<ProductDto> productDtos = products
                 .Select(p => p.ToDto())
                 .ToList();
+
+            System.Diagnostics.Debug.WriteLine($"Responding...");
 
             return Ok(new MarketplaceResponse
             {

@@ -21,6 +21,7 @@ namespace Orderly.Client.Services
             decimal? minPrice,
             decimal? maxPrice,
             bool? inStock,
+            string sortBy,
             int page = 1
         )
         {
@@ -28,8 +29,10 @@ namespace Orderly.Client.Services
 
             string url = $"/api/marketplace?page={page}" +
                  $"&searchText={searchText}" +
+                 $"&category={category}" +
                  $"&minPrice={minPrice}&maxPrice={maxPrice}" +
-                 $"&inStockOnly={inStock}";
+                 $"&inStockOnly={inStock}" +
+                 $"&sortBy={sortBy}";
 
             // Send the request
 

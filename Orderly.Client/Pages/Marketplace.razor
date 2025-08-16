@@ -3,6 +3,7 @@
 @using Orderly.Client.Pages.Shared
 @using Orderly.Client.Services
 @using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
 @using Orderly.Shared.Responses
 
 @page "/marketplace"
@@ -12,421 +13,311 @@
 <PageTitle>Marketplace - Orderly</PageTitle>
 
 <style>
-    .filter-input {
-        background-color: var(--nav-bg);
-        border: 1px solid var(--border);
-        color: var(--fg);
-        transition: border-color 0.2s ease;
-    }
-
-    .filter-input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
-        outline: none;
-    }
-
-    .form-check-input {
-        width: 1.4rem;
-        height: 1.4rem;
-        cursor: pointer;
-        color: var(--fg) !important;
-    }
-
-    .form-check-label {
-        cursor: pointer;
-        font-size: 0.9rem;
-    }
-
-    input.form-control.filter-input,
-    select.form-select.filter-input {
-        background-color: var(--nav-bg) !important;
-        border: 1px solid var(--border) !important;
-        color: var(--fg) !important;
-        caret-color: var(--fg) !important;
-    }
-
-    input.form-control.filter-input::placeholder,
-    select.form-select.filter-input::placeholder {
-        color: var(--fg);
-        opacity: 0.6;
-    }
-
-    input.form-control.filter-input:focus,
-    select.form-select.filter-input:focus {
-        background-color: var(--nav-bg) !important;
-        border-color: var(--primary) !important;
-        color: var(--fg) !important;
-        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-        outline: none !important;
-    }
-
-    input.form-control.filter-input:-webkit-autofill {
-        background-color: var(--nav-bg) !important;
-        color: var(--fg) !important;
-        transition: background-color 5000s ease-in-out 0s !important;
-    }
-
-    .product-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: center;
-    }
-
-    .product-grid-item {
-        flex: 1 1 300px;
-        width: 20%;
-        height: 300px;
-        max-width: 320px;
-        display: flex;
-    }
-
-    .product-grid-item.empty {
-        height: 300px !important;
-        width: 300px !important;
-        background-color: transparent !important;
-        color: transparent !important;
-    }
-
-    .skeleton-card {
-        background-color: var(--nav-bg);
-        border: 1px solid var(--border);
-        border-radius: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .skeleton-card .shimmer {
-        background: linear-gradient( 90deg, rgba(68, 68, 68, 0.25) 25%, rgba(102, 102, 102, 0.35) 50%, rgba(68, 68, 68, 0.25) 75% );
-        background-size: 200% 100%;
-        background-position: -200% 0;
-        animation: shimmer 3s infinite linear;
-    }
-
-    .skeleton-title {
-        width: 70%;
-        height: 24px;
-    }
-
-    .skeleton-badge {
-        width: 60px;
-        height: 22px;
-        border-radius: 0.5rem;
-    }
-
-    .skeleton-badge.price {
-        width: 80px;
-    }
-
-    .skeleton-text {
-        width: 100%;
-        height: 14px;
-    }
-
-    .skeleton-stock {
-        width: 50%;
-        height: 14px;
-    }
-
-    .skeleton-button {
-        width: 80px;
-        height: 32px;
-        border-radius: 0.4rem;
-    }
-
-    @@keyframes shimmer {
+    @@keyframes shimmer-light {
         0% {
-            background-position: -200% 0;
+            background-position: -450px 0;
         }
+
         100% {
-            background-position: 200% 0;
+            background-position: 450px 0;
         }
     }
 
-    .product-card {
-        background-color: var(--nav-bg);
-        border: 1px solid var(--border);
-        border-radius: 0.75rem;
-        color: var(--fg);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-    }
+    @@keyframes shimmer-dark {
+        0% {
+            background-position: -450px 0;
+        }
 
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    }
-
-    .product-name {
-        font-weight: 700;
-        font-size: 1.1rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .product-description {
-        font-size: 0.875rem;
-        margin-bottom: 0.75rem;
-        overflow: hidden;
-        max-height: 3.5rem;
-        text-overflow: ellipsis;
-    }
-
-    .product-price {
-        font-size: 1rem;
-        color: #2ECC71;
-    }
-
-    .product-stock {
-        font-size: 0.8rem;
-    }
-
-    .product-card .buy-btn {
-        background-color: transparent;
-        color: var(--primary);
-        border: 2px solid var(--primary);
-        border-radius: 0.4rem;
-        padding: 0.3rem;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .product-card .buy-btn:hover {
-        background-color: var(--primary);
-        color: var(--fg);
-    }
-
-    .product-card .badge {
-        padding: 0.35em 0.7em;
-        font-size: 0.85rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border: 1px solid transparent;
-    }
-
-    .product-card .badge.electronics { /* Pastel teal */
-        background-color: #A3D2CA;
-        color: #0B3C3C;
-    }
-
-    .product-card .badge.clothing { /* Pastel coral */
-        background-color: #F9C6B3;
-        color: #6B2D1F;
-    }
-
-    .product-card .badge.books { /* Pastel mustard */
-        background-color: #FFE5A3;
-        color: #6D5A00;
-    }
-
-    .product-card .badge.toys { /* Pastel lavender */
-        background-color: #DCC6E0;
-        color: #4A2F4A;
-    }
-
-    .product-card .badge.home { /* Pastel mint */
-        background-color: #B8E2D6;
-        color: #2B4D44;
-    }
-
-    .pagination-wrapper button {
-        min-width: 80px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .pagination-wrapper button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    @@media (max-width: 575px) {
-        .filters > div {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
+        100% {
+            background-position: 450px 0;
         }
     }
+
+    .animate-shimmer-light {
+        background: linear-gradient(90deg, rgba(229,229,229,0.8) 25%, rgba(245,245,245,0.6) 50%, rgba(229,229,229,0.8) 75%);
+        background-size: 900px 100%;
+        animation: shimmer-light 1.5s infinite linear;
+    }
+
+    .animate-shimmer-dark {
+        background: linear-gradient(90deg, rgba(55,65,81,0.8) 25%, rgba(75,85,99,0.6) 50%, rgba(55,65,81,0.8) 75%);
+        background-size: 900px 100%;
+        animation: shimmer-dark 1.5s infinite linear;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    input[type="checkbox"].accent-primary {
+        accent-color: var(--primary);
+    }
+
 </style>
 
-<div class="marketplace-wrapper container my-4">
-    <h2 class="mb-4" style="color: var(--fg);">Marketplace</h2>
+<div class="pt-32 pb-24 min-h-screen bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        @*
+            Title
+        *@
 
-    @*
-        Filters
-    *@
+        <h1 class="text-4xl font-bold text-lightfg dark:text-darkfg">Marketplace</h1>
 
-    <div class="filters row g-3 mb-4 align-items-center">
-        <div class="col-12 col-md-4">
-            <input class="form-control filter-input"
-                   placeholder="Search products..."
-                   @bind="SearchText"
-                   @bind:event="oninput"
-                   @onblur="PerformSearch" />
-        </div>
+        @*
+            Search Inputs
+        *@
 
-        <div class="col-6 col-md-3">
-            <select class="form-select filter-input"
-                @bind="SelectedCategory"
-                @bind:event="onchange"
-                @bind:after="PerformSearch">
+        <div class="w-full flex flex-col gap-4 mb-6">
+            <div class="flex flex-col sm:flex-row flex-wrap gap-4">
+                <!-- Search Bar -->
 
-                <option value="">All Categories</option>
+                <input type="text"
+                       placeholder="Search products..."
+                       class="flex-1 min-w-[200px] h-11 px-4 rounded-lg border border-lightborder dark:border-darkborder
+                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                      focus:outline-none focus:ring-2 focus:ring-primary transition"
+                       value="@SearchText"
+                       @onchange="OnSearchTextChange" />
 
-                @foreach (var category in CategoryOptions)
-                {
-                    <option>@category</option>
-                }
-            </select>
-        </div>
+                <!-- Category -->
 
-        <div class="col-6 col-md-2">
-            <input type="number"
-                   min="0"
-                   class="form-control filter-input"
-                   placeholder="Min Price"
-                   @bind="MinPrice"
-                   @bind:event="onchange"
-                   @bind:after="PerformSearch" />
-        </div>
+                <select class="h-11 px-4 rounded-lg border border-lightborder dark:border-darkborder
+                       bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                       focus:outline-none focus:ring-2 focus:ring-primary transition"
+                        @bind-value="SelectedCategory"
+                        @bind-value:event="oninput"
+                        @bind-value:after="PerformSearch">
 
-        <div class="col-6 col-md-2">
-            <input type="number"
-                   min="0"
-                   class="form-control filter-input"
-                   placeholder="Max Price"
-                   @bind="MaxPrice"
-                   @bind:event="onchange"
-                   @bind:after="PerformSearch"/>
-        </div>
+                    <option value="">All Categories</option>
+                    @foreach (var cat in CategoryOptions)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
 
-        <div class="col-6 col-md-1 d-flex align-items-center justify-content-start">
-            <input type="checkbox"
-                   class="form-check-input me-2"
-                   id="inStockCheck"
-                   @bind="InStockOnly"
-                   @bind:event="onchange"
-                   @bind:after="PerformSearch" />
-            <label class="form-check-label fw-semibold"
-                   for="inStockCheck"
-                   style="color: var(--fg); user-select: none;">
-                In Stock
-            </label>
-        </div>
-    </div>
+                <!-- Price Range -->
 
-    @*
-        Products
-    *@
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-lightfg/70 dark:text-darkfg/70">£</span>
+                        <input type="number" placeholder="Min"
+                               class="w-28 h-11 pl-7 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                              bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                              focus:outline-none focus:ring-2 focus:ring-primary text-sm transition"
+                               @bind-value="MinPrice"
+                               @bind-value:event="oninput"
+                               @bind-value:after="PerformSearch" />
+                    </div>
 
-    <div class="product-grid d-flex flex-wrap gap-3">
-        @if (IsLoading)
-        {
-            for (int i = 0; i < PageSize; i++)
-            {
-                <div class="product-grid-item" aria-hidden="true">
-                    <div class="skeleton-card w-100 d-flex flex-column p-4">
-                        <div class="skeleton-title shimmer mb-2"></div>
+                    <span class="text-lightfg/60 dark:text-darkfg/60 text-sm">-</span>
 
-                        <div class="skeleton-badges d-flex gap-2 mb-3">
-                            <div class="skeleton-badge shimmer"></div>
-                            <div class="skeleton-badge shimmer price"></div>
-                        </div>
-
-                        <div class="skeleton-text shimmer mb-1"></div>
-                        <div class="skeleton-text shimmer mb-3"></div>
-
-                        <div class="skeleton-stock shimmer mb-3"></div>
-
-                        <div class="skeleton-button shimmer align-self-start"></div>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-lightfg/70 dark:text-darkfg/70">£</span>
+                        <input type="number" placeholder="Max"
+                               class="w-28 h-11 pl-7 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                              bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                              focus:outline-none focus:ring-2 focus:ring-primary text-sm transition"
+                               @bind-value="MaxPrice"
+                               @bind-value:event="oninput"
+                               @bind-value:after="PerformSearch" />
                     </div>
                 </div>
-            }
-        }
-        else if (!Products.Any())
-        {
-            <div class="text-center p-5 text-muted">No products found.</div>
-        }
-        else
-        {
-            @foreach (ProductDto p in Products)
+
+                <!-- Stock Only Toggle -->
+
+                <label class="flex items-center gap-2 h-11 px-3 rounded-lg border border-lightborder dark:border-darkborder
+                      bg-lightbg dark:bg-darkcard cursor-pointer text-lightfg dark:text-darkfg
+                      hover:border-primary transition">
+                    <input type="checkbox" class="accent-primary"
+                           @bind-value="InStockOnly"
+                           @bind-value:event="oninput"
+                           @bind-value:after="PerformSearch" />
+                    <span class="text-sm">In Stock Only</span>
+                </label>
+            </div>
+
+            <!-- Sort By -->
+
+            <div class="flex justify-end">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-lightfg/70 dark:text-darkfg/70">Sort by:</span>
+                    <select class="h-11 px-3 rounded-lg border border-lightborder dark:border-darkborder
+                           bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                           focus:outline-none focus:ring-2 focus:ring-primary text-sm transition"
+                            @bind-value="SortBy"
+                            @bind-value:event="oninput"
+                            @bind-value:after="PerformSearch">
+
+                        <option value="relevant">Relevant</option>
+                        <option value="lowhigh">Price: Low to High</option>
+                        <option value="highlow">Price: High to Low</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        @*
+            Products
+        *@
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @if (IsLoading)
             {
-                <div class="product-grid-item" @onclick="() => OpenProductViewModal(p)">
-                    <div class="product-card d-flex flex-column p-4 w-100">
-                        <h5 class="product-name mb-2" title="@p.Name">@p.Name</h5>
+                @*
+                    Load Skeletons
+                *@
 
-                        <!-- Colour-coded category -->
+                @for (int i = 0; i < PageSize; i++)
+                {
+                    <div class="flex flex-col rounded-2xl border border-lightborder dark:border-darkborder shadow-sm overflow-hidden min-h-[380px] relative bg-lightcard dark:bg-darkcard">
+                        <!-- Shimmer Overlay -->
 
-                        <span class="badge mb-3 align-self-start @(p.Category.ToLowerInvariant())">
-                            @p.Category
-                        </span>
+                        <div class="absolute inset-0 rounded-2xl animate-shimmer-light dark:animate-shimmer-dark"></div>
 
-                        <!-- Display upto 60 character description -->
+                        <!-- Image Skeleton -->
 
-                        <p class="product-description text-muted flex-grow-1">@TruncateDescription(p.Description, 70)</p>
-
-                        <div class="product-price fw-bold mb-1">@p.Price.ToString("C")</div>
-                        <div class="product-stock text-muted small">
-                            Stock: @p.Stock | Sales: @p.Sales
+                        <div class="h-40 w-full relative z-10 flex items-center justify-center rounded-t-2xl bg-lightcard/80 dark:bg-darkcard/80">
+                            <i class="bi bi-box text-lightfg/40 dark:text-darkfg/40 text-3xl"></i>
                         </div>
 
-                        <button class="buy-btn mt-4" @onclick="() => OnBuyClicked(p)" @onclick:stopPropagation>
-                            @(IsLoggedIn ? "Buy" : "Login to Buy")
+                        <!-- Content Skeleton -->
+
+                        <div class="flex-1 flex flex-col p-5 gap-3 relative z-10">
+                            <!-- Title Skeleton -->
+
+                            <div class="h-6 w-3/4 rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+
+                            <!-- Category Badge Skeleton -->
+
+                            <div class="h-5 w-24 rounded-full bg-lightcard/80 dark:bg-darkcard/80"></div>
+
+                            <!-- Description Skeleton -->
+
+                            <div class="flex flex-col gap-2">
+                                <div class="h-4 w-full rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+                                <div class="h-4 w-5/6 rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+                                <div class="h-4 w-2/3 rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+                            </div>
+
+                            <!-- Footer Skeleton -->
+
+                            <div class="mt-auto flex flex-col gap-2 pt-4 border-t border-lightborder/50 dark:border-darkborder/50">
+                                <div class="h-5 w-1/4 rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+                                <div class="h-4 w-1/2 rounded bg-lightcard/80 dark:bg-darkcard/80"></div>
+                            </div>
+                        </div>
+
+                        <!-- Buy Button Skeleton -->
+
+                        <div class="h-10 w-full rounded-b-2xl mt-auto relative z-10 bg-lightcard/80 dark:bg-darkcard/80"></div>
+                    </div>
+                }
+            }
+            else if (!Products.Any())
+            {
+                @*
+                    No Products Found
+                *@
+
+                <div class="col-span-full text-center text-lightfg/80 dark:text-darkfg/80">
+                    No products found.
+                </div>
+            }
+            else
+            {
+                @*
+                    Products
+                *@
+
+                @foreach (var product in Products)
+                {
+                    <div class="group relative flex flex-col rounded-2xl border border-lightborder dark:border-darkborder bg-lightbg dark:bg-darkbg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden min-h-[380px] cursor-pointer"
+                        @onclick="() => OpenProductViewModal(product)">
+
+                        <!-- Product image (placeholder) -->
+
+                        <div class="h-40 w-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary text-3xl font-bold">
+                            <i class="bi bi-box"></i>
+                        </div>
+
+                        <!-- Content -->
+
+                        <div class="flex-1 flex flex-col p-5 gap-3">
+                            <!-- Title -->
+
+                            <h2 class="text-lg font-bold text-lightfg dark:text-darkfg truncate group-hover:text-primary transition">
+                                @product.Name
+                            </h2>
+
+                            <!-- Category badge -->
+
+                            <span class="inline-block self-start px-3 py-1 text-xs font-semibold rounded-full @GetCategoryBadgeClasses(product.Category)">
+                                @product.Category
+                            </span>
+
+                            <!-- Description -->
+
+                            <p class="text-sm text-lightfg/70 dark:text-darkfg/70 line-clamp-3">
+                                @StringHelper.Truncate(product.Description, 300)
+                            </p>
+
+                            <!-- Footer -->
+
+                            <div class="mt-auto flex flex-col gap-2 pt-4 border-t border-lightborder/50 dark:border-darkborder/50">
+                                <!-- Price + Stock -->
+
+                                <div>
+                                    <span class="block text-xl font-bold text-money">£@product.Price</span>
+                                    <span class="text-sm font-medium @((product.Stock > 0) ? "text-primary" : "text-red-500")">
+                                        @((product.Stock > 0) ? $"In Stock: {product.Stock}" : "Out of Stock")
+                                    </span>
+                                </div>
+
+                                <!-- Owner -->
+
+                                <span class="text-sm text-lightfg/70 dark:text-darkfg/70">
+                                    Sold by @product.OwnerDisplayName
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Buy button -->
+
+                        <button class="w-full bg-primary text-white text-sm font-medium py-3 rounded-b-2xl hover:bg-primary/90 transition"
+                            @onclick="() => OpenOrderCreateModal(product)"
+                            @onclick:stopPropagation="true">
+                                Buy Now
                         </button>
                     </div>
-                </div>
-            }
-
-            @*
-                Empty filler products
-            *@
-
-            if (PageSize > Products.Count)
-            {
-                for (int i = Products.Count; i < PageSize; i++)
-                {
-                    <div class="product-grid-item empty">
-
-                    </div>
                 }
             }
-        }
-    </div>
+        </div>
 
-    @*
-        Pagination
-    *@
+        @*
+            Pagination
+        *@
 
-    <div class="pagination-wrapper d-flex justify-content-center align-items-center gap-3 mt-4 flex-wrap">
-        <button class="btn btn-outline-primary"
-                disabled="@IsFirstPage"
-                @onclick="PreviousPage">
-            &laquo; Prev
-        </button>
+        <div class="flex items-center justify-center gap-4 mt-4">
+            <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                    @onclick="PreviousPage" disabled="@IsFirstPage">
+                <i class="bi bi-chevron-left text-lg"></i>
+            </button>
 
-        <span style="color: var(--fg); font-weight: 600;">
-            Page @Page of @TotalPages
-        </span>
+            <span class="text-sm text-lightfg dark:text-darkfg">Page @Page of @TotalPages</span>
 
-        <button class="btn btn-outline-primary"
-                disabled="@IsLastPage"
-                @onclick="NextPage">
-            Next &raquo;
-        </button>
+            <button class="p-2 rounded-md hover:bg-lightcard/50 dark:hover:bg-darkcard/50"
+                    @onclick="NextPage" disabled="@IsLastPage">
+                <i class="bi bi-chevron-right text-lg"></i>
+            </button>
+        </div>
     </div>
 </div>
-
-<script>
-    window.scrollHelpers = {
-        getScrollY: function () {
-            return window.scrollY || window.pageYOffset;
-        },
-        setScrollY: function (y) {
-            window.scrollTo(0, y);
-        }
-    };
-</script>
 
 <!-- Product View Modal -->
 
@@ -440,6 +331,17 @@
                   ProductToOrder="@SelectedProduct"
                   OnCreate="@CloseOrderCreateModal"
                   OnCancel="@CloseOrderCreateModal" />
+
+<script>
+    window.scrollHelpers = {
+        getScrollY: function () {
+            return window.scrollY || window.pageYOffset;
+        },
+        setScrollY: function (y) {
+            window.scrollTo(0, y);
+        }
+    };
+</script>
 
 @code {
     List<ProductDto> Products = new();
@@ -458,6 +360,7 @@
     decimal? MinPrice = null;
     decimal? MaxPrice = null;
     bool InStockOnly = false;
+    string SortBy = "relevant";
 
     private bool IsLoggedIn = false;
 
@@ -493,6 +396,7 @@
             MinPrice,
             MaxPrice,
             InStockOnly,
+            SortBy,
             Page
         );
 
@@ -513,6 +417,13 @@
         await LoadProducts();
     }
 
+    private async Task OnSearchTextChange(ChangeEventArgs e)
+    {
+        SearchText = e.Value?.ToString() ?? string.Empty;
+
+        await PerformSearch();
+    }
+
     private void OnBuyClicked(ProductDto product)
     {
         if (IsLoggedIn)
@@ -525,25 +436,23 @@
         }
     }
 
-    private string TruncateDescription(string description, int maxLength)
+    private string GetCategoryBadgeClasses(string category)
     {
-        if (string.IsNullOrEmpty(description))
+        return category switch
         {
-            return string.Empty;
-        }
-
-        if (description.Length <= maxLength)
-        {
-            return description;
-        }
-
-        return description.Substring(0, maxLength).TrimEnd() + "…";
+            "Electronics" => "bg-blue-800 text-blue-100",
+            "Clothing" => "bg-pink-800 text-pink-100",
+            "Books" => "bg-green-800 text-green-100",
+            "Toys" => "bg-yellow-800 text-yellow-100",
+            "Home" => "bg-purple-800 text-purple-100",
+            _ => "bg-gray-800 text-gray-100"
+        };
     }
 
     // ***** Paging ***** //
 
     int Page = 1;
-    const int PageSize = 16;
+    const int PageSize = 12;
     int TotalPages = 1;
 
     private bool IsFirstPage

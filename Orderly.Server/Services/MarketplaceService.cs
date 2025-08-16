@@ -24,6 +24,7 @@ namespace Orderly.Server.Services
             decimal? minPrice,
             decimal? maxPrice,
             bool? inStockOnly,
+            string sortBy,
             int page,
             int pageSize
         )
@@ -31,6 +32,8 @@ namespace Orderly.Server.Services
             // Query products
 
             var query = _Context.Products
+                .Include(p => p.Owner)
+                .Include(p => p.Tags)
                 .Where(p => !p.IsDeleted);
 
             // Apply search filter
@@ -45,9 +48,10 @@ namespace Orderly.Server.Services
 
             // Apply category filter
 
-            if (!string.IsNullOrWhiteSpace(category))
+            if (!string.IsNullOrWhiteSpace(category)
+                && Enum.TryParse<ProductCategory>(category, out var categoryEnum))
             {
-                query = query.Where(p => p.Category.ToString() == category);
+                query = query.Where(p => p.Category == categoryEnum);
             }
 
             // Apply min and max price range
@@ -81,13 +85,46 @@ namespace Orderly.Server.Services
 
             int totalCount = await query.CountAsync();
 
-            // Get the products for the specified page
+            // Appy the sort by
 
-            List<Product> products = await query
-                .OrderByDescending(p => p.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            List<Product> products;
+
+            switch (sortBy)
+            {
+                case "lowhigh":
+                    // Price low to high
+
+                    products = await query
+                        .OrderBy(p => p.Price)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
+                    break;
+                case "highlow":
+                    // Price high to low
+
+                    products = await query
+                        .OrderByDescending(p => p.Price)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
+                    break;
+
+                default:
+                    // Default to new/relevant
+
+                    products = await query
+                        .OrderByDescending(p => p.CreatedAt)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
+                    break;
+            }
+
+            // Return data
 
             return new(totalCount, products);
         }
