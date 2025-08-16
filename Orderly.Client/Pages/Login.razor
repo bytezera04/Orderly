@@ -16,131 +16,130 @@
 
 <PageTitle>Login - Orderly</PageTitle>
 
-<style>
-    .auth-container {
-        max-width: 400px;
-        margin: 3rem auto;
-        background: var(--card-bg);
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        color: var(--fg);
-    }
+<div class="min-h-screen pt-24 flex items-center justify-center bg-lightbg dark:bg-darkbg px-4">
+    <div class="w-full max-w-md bg-lightcard dark:bg-darkcard rounded-2xl shadow-lg p-6 sm:p-8">
 
-    .tab-btns {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-
-    .tab-btn {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        color: var(--fg);
-        border-bottom: 2px solid transparent;
-        transition: border-color 0.3s ease;
-    }
-
-    .tab-btn.active {
-        border-color: var(--primary);
-        color: var(--primary);
-    }
-
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    input[type="text"], input[type="email"], input[type="password"] {
-        padding: 0.5rem 1rem;
-        border: 1.5px solid var(--border);
-        border-radius: 4px;
-        background: var(--bg);
-        color: var(--fg);
-        transition: border-color 0.3s ease;
-    }
-
-    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-        border-color: var(--primary);
-        outline: none;
-    }
-
-    button.submit-btn {
-        background-color: var(--primary);
-        color: var(--fg);
-        border: none;
-        padding: 0.75rem 1rem;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    button.submit-btn:hover {
-        background-color: var(--primary-dark);
-    }
-
-    .error-message {
-        color: #ff6b6b;
-        font-weight: 600;
-    }
-
-    .success-message {
-        color: #4caf50;
-        font-weight: 600;
-    }
-</style>
-
-<div class="auth-container">
-    @if (IsLogin)
-    {
-        <div class="tab-btns">
-            <button class="tab-btn active" @onclick="() => SetTab(true)">Sign In</button>
-            <button class="tab-btn" @onclick="() => SetTab(false)">Register</button>
+        <!-- Segmented Tabs -->
+        <div class="w-full mb-6">
+            <div class="mx-auto w-full rounded-full border border-lightborder dark:border-darkborder bg-lightbg dark:bg-darkbg p-1 grid grid-cols-2">
+                <button class="h-10 rounded-full text-sm font-semibold transition
+                 @(IsLogin ? "bg-primary text-white shadow" : "text-lightfg dark:text-darkfg hover:bg-lightborder/50 dark:hover:bg-darkborder/50")"
+                        @onclick="() => SetTab(true)">
+                    Login
+                </button>
+                <button class="h-10 rounded-full text-sm font-semibold transition
+                 @(!IsLogin ? "bg-primary text-white shadow" : "text-lightfg dark:text-darkfg hover:bg-lightborder/50 dark:hover:bg-darkborder/50")"
+                        @onclick="() => SetTab(false)">
+                    Register
+                </button>
+            </div>
         </div>
 
-        <EditForm Model="@LoginModel" OnValidSubmit="HandleLogin">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <input type="email" placeholder="Email" @bind="LoginModel.Email" />
-            <input type="password" placeholder="Password" @bind="LoginModel.Password" />
-            <button class="submit-btn" type="submit">Sign In</button>
-            @if (!string.IsNullOrEmpty(LoginError))
-            {
-                <p class="error-message">@LoginError</p>
-            }
-        </EditForm>
-    }
-    else
-    {
-        <div class="tab-btns">
-            <button class="tab-btn" @onclick="() => SetTab(true)">Sign In</button>
-            <button class="tab-btn active" @onclick="() => SetTab(false)">Register</button>
-        </div>
+        <!-- Forms wrapper (fixed min-height so both tabs feel identical) -->
+        <div class="min-h-[460px] flex flex-col justify-between">
 
-        <EditForm Model="@RegisterModel" OnValidSubmit="HandleRegister">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <input type="text" placeholder="Full Name" @bind="RegisterModel.FullName" />
-            <input type="email" placeholder="Email" @bind="RegisterModel.Email" />
-            <input type="password" placeholder="Password" @bind="RegisterModel.Password" />
-            <input type="password" placeholder="Confirm Password" @bind="RegisterModel.ConfirmPassword" />
-            <button class="submit-btn" type="submit">Register</button>
-            @if (!string.IsNullOrEmpty(RegisterError))
-            {
-                <p class="error-message">@RegisterError</p>
-            }
-            @if (!string.IsNullOrEmpty(RegisterSuccess))
-            {
-                <p class="success-message">@RegisterSuccess</p>
-            }
-        </EditForm>
-    }
+            <!-- LOGIN -->
+            <div class="@(IsLogin ? "block" : "hidden")">
+                @if (!string.IsNullOrEmpty(LoginError))
+                {
+                    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        @LoginError
+                    </div>
+                }
+
+                <div class="flex flex-col gap-4">
+                    <label class="relative block">
+                        <span class="sr-only">Email</span>
+                        <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="email" placeholder="Email"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="LoginModel.Email" />
+                    </label>
+
+                    <label class="relative block">
+                        <span class="sr-only">Password</span>
+                        <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="password" placeholder="Password"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="LoginModel.Password" />
+                    </label>
+
+                    <button class="w-full h-12 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
+                            @onclick="HandleLogin">
+                        Sign In
+                    </button>
+                </div>
+            </div>
+
+            <!-- REGISTER -->
+            <div class="@(!IsLogin ? "block" : "hidden")">
+                @if (!string.IsNullOrEmpty(RegisterError))
+                {
+                    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        @RegisterError
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(RegisterSuccess))
+                {
+                    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        @RegisterSuccess
+                    </div>
+                }
+
+                <div class="flex flex-col gap-4">
+                    <label class="relative block">
+                        <span class="sr-only">Full Name</span>
+                        <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="text" placeholder="Username"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="RegisterModel.FullName" />
+                    </label>
+
+                    <label class="relative block">
+                        <span class="sr-only">Email</span>
+                        <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="email" placeholder="Email"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="RegisterModel.Email" />
+                    </label>
+
+                    <label class="relative block">
+                        <span class="sr-only">Password</span>
+                        <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="password" placeholder="Password"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="RegisterModel.Password" />
+                    </label>
+
+                    <label class="relative block">
+                        <span class="sr-only">Confirm Password</span>
+                        <i class="bi bi-lock-fill absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+                        <input type="password" placeholder="Confirm Password"
+                               class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
+                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                               @bind="RegisterModel.ConfirmPassword" />
+                    </label>
+
+                    <button class="w-full h-12 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
+                            @onclick="HandleRegister">
+                        Register
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 @code {
