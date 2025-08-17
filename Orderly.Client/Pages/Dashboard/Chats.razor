@@ -4,6 +4,7 @@
 @using Orderly.Client.Pages.Shared
 @using Orderly.Client.Services
 @using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
 
 @page "/dashboard/chats"
 @namespace Orderly.Client.Pages.Dashboard
@@ -13,262 +14,98 @@
 
 <PageTitle>Chats - Orderly</PageTitle>
 
-<style>
-    .chats-page-container {
-        width: 80%;
-        max-width: 1100px;
-        min-width: 320px;
-        margin: 2rem auto;
-        padding: 1rem 1.25rem;
-        color: var(--fg);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--bg);
-    }
+<div class="flex justify-center px-4 py-6 min-h-[calc(100svh-4rem)]">
+    <div class="w-full max-w-3xl flex flex-col">
+        @*
+            Header
+        *@
 
-    .search-filter-row {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: nowrap;
-        align-items: center;
-    }
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 px-0 sm:px-2 py-2">
+            <!-- Search Input -->
 
-    @@media (max-width: 575.98px) {
-        .search-filter-row {
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-    }
+            <input type="text"
+                   placeholder="Search chats..."
+                   class="w-full sm:flex-1 h-10 px-4 rounded-xl border border-lightcard dark:border-darkcard
+                          bg-transparent text-lightfg dark:text-darkfg text-sm
+                          focus:ring-2 focus:ring-primary focus:outline-none"
+                   @bind="SearchText"
+                   @bind:event="oninput" />
 
-    .chat-search-input {
-        flex: 1 1 350px;
-        min-width: 0;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        background-color: var(--nav-bg);
-        color: var(--fg);
-        box-shadow: none;
-        transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
+            <!-- Context Filter -->
 
-    .chat-search-input::placeholder {
-        color: var(--muted);
-    }
+            <select class="w-full sm:w-auto h-10 px-4 rounded-xl border border-lightcard dark:border-darkcard
+                           bg-transparent text-lightfg dark:text-darkfg text-sm
+                           focus:ring-2 focus:ring-primary focus:outline-none"
+                    @bind="SelectedContextType"
+                    @bind:event="oninput">
 
-    .chat-search-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 8px var(--primary);
-    }
+                <option value="">All</option>
 
-    .filter-select-wrapper {
-        position: relative;
-        min-width: 180px;
-        flex-shrink: 0;
-    }
-
-    .filter-select-label {
-        position: absolute;
-        top: -0.75rem;
-        left: 1rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--muted);
-        user-select: none;
-        background: var(--nav-bg);
-        padding: 0 0.25rem;
-    }
-
-    .chat-filter-select {
-        width: 100%;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        background-color: var(--nav-bg);
-        color: var(--fg);
-        appearance: none;
-        cursor: pointer;
-        box-shadow: none;
-        transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .chat-filter-select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 8px var(--primary);
-    }
-
-    .chat-filter-select::-ms-expand {
-        display: none;
-    }
-
-    .filter-select-wrapper::after {
-        content: "▼";
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-        color: var(--muted);
-        font-size: 0.6rem;
-    }
-
-    .chat-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .chat-list-item {
-        display: flex;
-        gap: 1rem;
-        padding: 0.75rem 1rem;
-        border-radius: 10px;
-        background-color: var(--nav-bg);
-        border: 1px solid var(--border);
-        cursor: pointer;
-        transition: background-color 0.2s ease, box-shadow 0.2s ease;
-        align-items: center;
-        min-height: 64px;
-    }
-
-    .chat-list-item:hover {
-        background-color: rgba(59, 130, 246, 0.15);
-        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
-    }
-
-    .chat-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
-        background-color: var(--primary);
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 700;
-        font-size: 1.25rem;
-        user-select: none;
-        flex-shrink: 0;
-    }
-
-    .chat-text-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .chat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: 600;
-        color: var(--fg);
-        margin-bottom: 0.25rem;
-        font-size: 1rem;
-    }
-
-    .chat-name-context {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .chat-participant-name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .chat-context-label {
-        background-color: var(--primary);
-        color: #fff;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.1rem 0.5rem;
-        border-radius: 10px;
-        user-select: none;
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
-
-    .chat-timestamp {
-        font-size: 0.8rem;
-        color: var(--muted);
-        flex-shrink: 0;
-        white-space: nowrap;
-        min-width: 6.5ch;
-        text-align: right;
-    }
-
-    .chat-preview-message {
-        color: var(--muted);
-        font-size: 0.9rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-</style>
-
-
-<div class="chats-page-container">
-    <div class="search-filter-row">
-        <input type="search"
-               placeholder="Search chats..."
-               class="chat-search-input"
-               @bind="SearchText"
-               @bind:event="oninput" />
-
-        <div class="filter-select-wrapper">
-            <label for="chatContextFilter" class="filter-select-label">Filter by Context</label>
-            <select id="chatContextFilter" class="chat-filter-select" @bind="SelectedContextType">
-                <option value="">All Contexts</option>
-                @foreach (var ctx in ContextTypes)
+                @foreach (var type in ContextTypes)
                 {
-                    <option value="@ctx">@ctx</option>
+                    <option value="@type">@type</option>
                 }
             </select>
         </div>
-    </div>
 
-    <ul class="chat-list" role="list" aria-label="User chats">
-        @foreach (var chatPreview in FilteredChats)
-        {
-            <li class="chat-list-item user-select-none" tabindex="0" role="button" aria-pressed="false"
-                @onclick="@(() => OpenChat(chatPreview))">
+        @*
+            Chats
+        *@
 
-                <div class="chat-avatar" aria-hidden="true">
-                    @GetInitials(chatPreview.OtherParticipantDisplayName)
-                </div>
-                <div class="chat-text-container">
-                    <div class="chat-header">
-                        <div class="chat-name-context" title="@chatPreview.OtherParticipantDisplayName">
-                            <span class="chat-participant-name">@chatPreview.OtherParticipantDisplayName</span>
-                            @if (!string.IsNullOrWhiteSpace(chatPreview.ChatThread?.ContextType))
-                            {
-                                <span class="chat-context-label">@chatPreview.ChatThread.ContextType</span>
-                            }
+        <div class="flex-1 overflow-y-auto min-h-0 mt-2">
+            @if (IsLoading)
+            {
+                @*
+                    Loading
+                *@
+
+                <p class="text-gray-400 text-center mt-10">Loading...</p>
+            }
+            else if (!FilteredChats.Any())
+            {
+                @*
+                    No Chats Found
+                *@
+
+                <p class="text-gray-400 text-center mt-10">No chats found</p>
+            }
+            else
+            {
+                @*
+                    Chats
+                *@
+
+                <div class="flex flex-col gap-2">
+                    @foreach (var chat in FilteredChats)
+                    {
+                        <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300 cursor-pointer transition-colors"
+                             @onclick="() => OpenChat(chat)">
+
+                            <!-- Left: Participant info -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    @GetInitials(chat.OtherParticipant?.FullName)
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium text-lightfg dark:text-darkfg">
+                                        @chat.OtherParticipant?.FullName
+                                    </span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+                                        @(chat.PreviewMessage?.Content ?? "No messages yet")
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span class="text-xs text-gray-400 dark:text-gray-500">
+                                @DateTimeHelper.ToShortTimeAgo(chat.LastActivityAt)
+                            </span>
                         </div>
-                        <span class="chat-timestamp" aria-label="Last activity">@chatPreview.LastActivityAt.ToLocalTime().ToString("g")</span>
-                    </div>
-                    <div class="chat-preview-message" title="@chatPreview.PreviewMessage?.Content">
-                        @chatPreview.PreviewMessage?.Content
-                    </div>
+                    }
                 </div>
-            </li>
-        }
-    </ul>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
@@ -296,9 +133,15 @@
         }
     }
 
+    private bool IsLoading = true;
+
     protected override async Task OnInitializedAsync()
     {
+        IsLoading = true;
+
         ChatPreviews = await _ChatService.GetChatPreviews() ?? new();
+
+        IsLoading = false;
 
         // Connect to SignalR
 
@@ -370,6 +213,8 @@
 
         return string.Concat(parts[0][0], parts[1][0]).ToUpper();
     }
+
+    // ***** Injects ***** //
 
     [Inject]
     private ChatService _ChatService {get;set;}
