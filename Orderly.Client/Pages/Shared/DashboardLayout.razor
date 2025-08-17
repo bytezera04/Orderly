@@ -22,13 +22,14 @@
         <div class="fixed inset-0 bg-black/40 z-40" @onclick="CloseSidebar"></div>
     }
 
-
     @*
         Sidebar
     *@
 
-    <aside class="@($"dashboard-sidebar flex flex-col bg-lightcard dark:bg-darkcard text-lightfg dark:text-darkfg shadow-lg transition-all duration-300 z-50 fixed top-16 left-0 h-[calc(100%-4rem)] {(IsSidebarOpen ? "w-64" : "w-0 overflow-hidden")}")">
+    <aside class="@($"dashboard-sidebar flex flex-col bg-lightcard dark:bg-darkcard text-lightfg dark:text-darkfg shadow-lg transition-all duration-300 z-40 fixed top-16 left-0 h-[calc(100%-4rem)] {(IsSidebarOpen ? "w-64" : "w-0 overflow-hidden")}")">
         <nav class="flex flex-col gap-3 mt-4 px-2">
+            <!-- Overview -->
+
             <NavLink href="/dashboard/overview"
                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300
                             hover:text-primary dark:hover:text-primary"
@@ -37,6 +38,8 @@
                 <span>Overview</span>
             </NavLink>
 
+            <!-- Products -->
+
             <NavLink href="/dashboard/products"
                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300
                             hover:text-primary dark:hover:text-primary"
@@ -44,6 +47,8 @@
                 <i class="bi bi-box-seam text-lg"></i>
                 <span>Products</span>
             </NavLink>
+
+            <!-- Orders Dropdown -->
 
             <div>
                 <button @onclick="ToggleOrdersDropdown"
@@ -57,6 +62,8 @@
                 </button>
 
                 <div class="@($"overflow-hidden transition-all duration-300 gap-3 pl-6 {(OrdersExpanded ? "max-h-40" : "max-h-0")}")">
+                    <!-- Placed Orders-->
+
                     <NavLink href="/dashboard/orders/placed"
                              class="flex items-center gap-2 px-3 py-1 rounded-lg text-base font-medium transition-colors duration-300
                                 hover:text-primary dark:hover:text-primary"
@@ -64,6 +71,9 @@
                         <i class="bi bi-cart-check-fill text-base"></i>
                         Placed
                     </NavLink>
+
+                    <!-- Received Orders -->
+
                     <NavLink href="/dashboard/orders/received"
                              class="flex items-center gap-2 px-3 py-1 rounded-lg text-base font-medium transition-colors duration-300
                                 hover:text-primary dark:hover:text-primary"
@@ -73,6 +83,8 @@
                     </NavLink>
                 </div>
             </div>
+
+            <!-- Chats -->
 
             <NavLink href="/dashboard/chats"
                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors duration-300

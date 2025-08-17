@@ -9,93 +9,63 @@
     *@
 
     <nav class="w-full bg-lightcard dark:bg-darkcard shadow-md fixed top-0 left-0 z-50">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                @*
-                    Logo
-                *@
+        <div class="flex items-center h-16 px-4">
+            <!-- Logo -->
 
+            <div class="flex items-center">
                 <a href="/" class="text-2xl font-bold text-primary dark:text-primary">
                     Orderly
                 </a>
+            </div>
 
-                @*
-                    Desktop Nav Links
-                *@
+            <!-- Links -->
 
-                <div class="hidden md:flex space-x-8">
+            <div class="flex-1">
+                <div class="hidden md:flex justify-center max-w-6xl mx-auto space-x-8">
                     @foreach (Nav nav in Navs)
                     {
-                        <NavLink href="@nav.Path" class="@($"relative font-medium text-lightfg dark:text-darkfg transition duration-300 hover:text-primary dark:hover:text-primary {(IsNavActive(nav) ? "text-primary dark:text-primary" : "")}")">
+                        <NavLink href="@nav.Path"
+                                 class="@($"relative font-medium text-lightfg dark:text-darkfg transition duration-300 hover:text-primary dark:hover:text-primary {(IsNavActive(nav) ? "text-primary dark:text-primary" : "")}")">
                             @nav.Title
                             <span class="absolute left-0 -bottom-1 w-full h-0.5 bg-primary dark:bg-primary scale-x-0 transition-transform duration-300 hover:scale-x-100 @(IsNavActive(nav) ? "scale-x-100" : "")"></span>
                         </NavLink>
                     }
                 </div>
-
-                @*
-                    Theme Toggle
-                *@
-
-                <div class="flex items-center space-x-4">
-                    <button @onclick="ToggleTheme" class="p-2 rounded-md hover:bg-lightcard/20 dark:hover:bg-darkcard/20 transition-colors duration-200">
-                        @if (IsDarkMode)
-                        {
-                            <!-- Sun Icon -->
-
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-                                <!-- Core circle -->
-                                <circle cx="12" cy="12" r="5" fill="currentColor" />
-                                <!-- Rays -->
-                                <line x1="12" y1="1" x2="12" y2="4" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="1" y1="12" x2="4" y2="12" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="20" y1="12" x2="23" y2="12" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" stroke="currentColor" stroke-linecap="round" />
-                                <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" stroke="currentColor" stroke-linecap="round" />
-                            </svg>
-                        }
-                        else
-                        {
-                            <!-- Moon Icon -->
-
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
-                            </svg>
-                        }
-                    </button>
-
-                    @*
-                        Mobile Hamburger Button
-                    *@
-
-                    <button id="mobile-menu-btn"
-                            class="md:hidden p-2 rounded-lg transition
-                                   bg-lightbg/10 dark:bg-darkbg/10
-                                   hover:bg-lightbg/20 dark:hover:bg-darkbg/20
-                                   text-lightfg dark:text-darkfg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-                             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-                </div>
             </div>
 
-            @*
-                Mobile Nav Links
-            *@
+            <!-- Theme Toggle -->
 
-            <div id="mobile-menu" class="hidden md:hidden mt-2 space-y-2 flex flex-col">
-                @foreach (Nav nav in Navs)
-                {
-                    <NavLink href="@nav.Path" class="@($"block px-4 py-2 rounded-lg font-medium text-lightfg dark:text-darkfg hover:bg-lightbg/20 dark:hover:bg-darkbg/20 transition {(IsNavActive(nav) ? "bg-lightbg/20 dark:bg-darkbg/20" : "")}")">
-                        @nav.Title
-                    </NavLink>
-                }
+            <div class="flex items-center space-x-4">
+                <button class="p-2 rounded-md hover:bg-lightcard/20 dark:hover:bg-darkcard/20 transition-colors duration-200"
+                        @onclick="ToggleTheme">
+
+                    @if (IsDarkMode)
+                    {
+                        <i class="bi bi-sun-fill text-yellow-400 text-2xl"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-moon-fill text-gray-900 text-2xl"></i>
+                    }
+                </button>
+
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg transition bg-lightbg/10 dark:bg-darkbg/10 hover:bg-lightbg/20 dark:hover:bg-darkbg/20 text-lightfg dark:text-darkfg"
+                        @onclick="ToggleMobileMenu">
+                    <i class="bi @(IsMobileMenuOpen ? "bi-x" : "bi-list") text-2xl"></i>
+                </button>
             </div>
+        </div>
+
+        @* Mobile Nav Links *@
+
+        <div id="mobile-menu" class="@($"md:hidden mt-2 mb-2 space-y-2 flex flex-col {(IsMobileMenuOpen ? "" : "hidden")}")">
+            @foreach (Nav nav in Navs)
+            {
+                <NavLink href="@nav.Path"
+                         class="@($"block px-4 py-2 rounded-lg font-medium text-lightfg dark:text-darkfg hover:bg-lightbg/20 dark:hover:bg-darkbg/20 transition {(IsNavActive(nav) ? "bg-lightbg/20 dark:bg-darkbg/20" : "")}")">
+                    @nav.Title
+                </NavLink>
+            }
         </div>
     </nav>
 
@@ -157,10 +127,9 @@
                 *@
 
                 <div class="flex justify-center sm:justify-end">
-                    <a href="https://github.com/bytezera04/Orderly" target="_blank" class="hover:text-primary dark:hover:text-primary transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" d="M12 0C5.372 0 0 5.373 0 12c0 5.303 3.438 9.8 8.207 11.387.6.113.793-.26.793-.577 0-.285-.01-1.04-.015-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.744.082-.729.082-.729 1.205.085 1.84 1.238 1.84 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.304.76-1.604-2.665-.303-5.467-1.333-5.467-5.93 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 016 0c2.292-1.552 3.3-1.23 3.3-1.23.653 1.653.241 2.873.118 3.176.77.84 1.236 1.91 1.236 3.22 0 4.61-2.807 5.625-5.48 5.921.43.37.814 1.096.814 2.21 0 1.594-.014 2.88-.014 3.27 0 .32.192.694.8.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z" clip-rule="evenodd" />
-                        </svg>
+                    <a href="https://github.com/bytezera04/Orderly" target="_blank"
+                       class="hover:text-primary dark:hover:text-primary transition">
+                        <i class="bi bi-github text-2xl"></i>
                     </a>
                 </div>
             </div>
@@ -223,6 +192,15 @@
             await JS.InvokeVoidAsync("document.documentElement.classList.remove", "dark");
             await JS.InvokeVoidAsync("localStorage.setItem", "theme", "light");
         }
+    }
+
+    // ***** Mobile Navbar ***** //
+
+    private bool IsMobileMenuOpen = false;
+
+    private void ToggleMobileMenu()
+    {
+        IsMobileMenuOpen = !IsMobileMenuOpen;
     }
 
     // ***** Navlinks ***** //
