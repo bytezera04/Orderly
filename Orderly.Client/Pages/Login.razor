@@ -18,8 +18,10 @@
 
 <div class="min-h-screen pt-24 flex items-center justify-center bg-lightbg dark:bg-darkbg px-4">
     <div class="w-full max-w-md bg-lightcard dark:bg-darkcard rounded-2xl shadow-lg p-6 sm:p-8">
+        @*
+            Login and Register Tab Selection
+        *@
 
-        <!-- Segmented Tabs -->
         <div class="w-full mb-6">
             <div class="mx-auto w-full rounded-full border border-lightborder dark:border-darkborder bg-lightbg dark:bg-darkbg p-1 grid grid-cols-2">
                 <button class="h-10 rounded-full text-sm font-semibold transition
@@ -35,11 +37,14 @@
             </div>
         </div>
 
-        <!-- Forms wrapper (fixed min-height so both tabs feel identical) -->
         <div class="min-h-[460px] flex flex-col justify-between">
+            @*
+                Login Form
+            *@
 
-            <!-- LOGIN -->
             <div class="@(IsLogin ? "block" : "hidden")">
+                <!-- Messages -->
+
                 @if (!string.IsNullOrEmpty(LoginError))
                 {
                     <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
@@ -47,26 +52,38 @@
                     </div>
                 }
 
+                <!-- Fields -->
+
                 <div class="flex flex-col gap-4">
+                    <!-- Email -->
+
                     <label class="relative block">
                         <span class="sr-only">Email</span>
+
                         <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="email" placeholder="Email"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="LoginModel.Email" />
                     </label>
 
+                    <!-- Password -->
+
                     <label class="relative block">
                         <span class="sr-only">Password</span>
+
                         <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="password" placeholder="Password"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="LoginModel.Password" />
                     </label>
+
+                    <!-- Submit Button -->
 
                     <button class="w-full h-12 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
                             @onclick="HandleLogin">
@@ -75,8 +92,13 @@
                 </div>
             </div>
 
-            <!-- REGISTER -->
+            @*
+                Register Form
+            *@
+
             <div class="@(!IsLogin ? "block" : "hidden")">
+                <!-- Messages -->
+
                 @if (!string.IsNullOrEmpty(RegisterError))
                 {
                     <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
@@ -90,46 +112,65 @@
                     </div>
                 }
 
+                <!-- Fields -->
+
                 <div class="flex flex-col gap-4">
+                    <!-- Full Name -->
+
                     <label class="relative block">
                         <span class="sr-only">Full Name</span>
+
                         <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="text" placeholder="Username"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="RegisterModel.FullName" />
                     </label>
 
+                    <!-- Email -->
+
                     <label class="relative block">
                         <span class="sr-only">Email</span>
+
                         <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="email" placeholder="Email"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="RegisterModel.Email" />
                     </label>
 
+                    <!-- Password -->
+
                     <label class="relative block">
-                        <span class="sr-only">Password</span>
+                        <span class="sr-only">Password</span
                         <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="password" placeholder="Password"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="RegisterModel.Password" />
                     </label>
 
+                    <!-- Confirm Password -->
+
                     <label class="relative block">
                         <span class="sr-only">Confirm Password</span>
+
                         <i class="bi bi-lock-fill absolute left-3 top-1/2 -translate-y-1/2 text-lightfg/60 dark:text-darkfg/60"></i>
+
                         <input type="password" placeholder="Confirm Password"
                                class="w-full h-12 pl-10 pr-3 rounded-lg border border-lightborder dark:border-darkborder
-                          bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
-                          focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                      bg-lightbg dark:bg-darkcard text-lightfg dark:text-darkfg
+                                      focus:outline-none focus:ring-2 focus:ring-primary transition"
                                @bind="RegisterModel.ConfirmPassword" />
                     </label>
+
+                    <!-- Submit Button -->
 
                     <button class="w-full h-12 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
                             @onclick="HandleRegister">
