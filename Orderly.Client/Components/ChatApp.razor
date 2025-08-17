@@ -1,0 +1,422 @@
+﻿
+@using Microsoft.AspNetCore.SignalR.Client
+@using Orderly.Client.Services
+@using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
+
+@implements IAsyncDisposable
+
+@namespace Orderly.Client.Components
+
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
+<div class="flex flex-col md:flex-row h-[calc(100svh-4rem)] overflow-hidden bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
+    @*
+        Chat Area
+    *@
+
+	<div class="grid grid-rows-[auto,1fr,auto] flex-1 min-h-0 border-b md:border-b-0 md:border-r border-lightcard dark:border-darkcard">
+        @*
+            Chat Header
+        *@
+
+		<div class="row-start-1 shrink-0 flex items-center justify-between px-4 py-3 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg border-b border-lightcard dark:border-darkcard shadow-sm">
+			<button @onclick="OnBackClicked" class="text-xl hover:opacity-75">
+				<i class="bi bi-arrow-left"></i>
+			</button>
+			<h2 class="flex-1 text-center font-semibold text-lg truncate">
+				@CurrentChat?.Subject
+			</h2>
+			<div class="w-6"></div>
+		</div>
+
+        @*
+            Chat Body
+        *@
+
+		<div class="row-start-2 min-h-0 overflow-y-auto -webkit-overflow-scrolling-touch px-4 py-3 space-y-3 bg-lightbg dark:bg-darkbg" @ref="ChatBodyRef">
+			@if (Messages is null || !Messages.Any())
+			{
+                @*
+                    Loading
+                *@
+
+				<p class="text-gray-400 text-center mt-10">No messages yet</p>
+			}
+			else
+			{
+                @*
+                    Messages
+                *@
+
+				@foreach (var msg in Messages)
+				{
+					bool isMe = msg.Sender?.PublicId == CurrentUser?.PublicId;
+
+					<div class="flex @(isMe ? "justify-end" : "justify-start")">
+						<div class="max-w-xs md:max-w-md px-4 py-2 rounded-2xl text-sm shadow-md
+									@(isMe
+									  ? "bg-blue-500 dark:bg-blue-600 text-white rounded-br-none"
+									  : "bg-gray-100 dark:bg-darkcard text-lightfg dark:text-darkfg rounded-bl-none")">
+
+                            <div class="whitespace-pre-wrap">
+								@msg.Content
+							</div>
+
+							<div class="text-xs opacity-70 mt-1 @(isMe ? "text-right" : "text-left")">
+								@DateTimeHelper.ToShortTimeAgo(msg.CreatedAt)
+							</div>
+						</div>
+					</div>
+				}
+			}
+		</div>
+
+        @*
+            Message Input
+        *@
+
+		<div class="row-start-3 shrink-0 px-4 py-3 border-t border-lightcard dark:border-darkcard bg-lightbg dark:bg-darkbg pb-[env(safe-area-inset-bottom)]">
+			<div class="flex items-center gap-2">
+                <!-- Message Content -->
+
+				<textarea @bind="NewMessageContent"
+							@oninput="OnTypeAreaInput"
+							@ref="TypeAreaRef"
+							placeholder="Type a message..."
+							rows="1"
+							class="flex-1 resize-none px-4 py-3 rounded-2xl border border-lightcard dark:border-darkcard
+								   bg-lightbg dark:bg-darkbg text-sm text-lightfg dark:text-darkfg
+								   focus:ring-2 focus:ring-primary focus:outline-none
+								   max-h-44 overflow-y-auto no-scrollbar">
+				</textarea>
+
+                <!-- Submit Button -->
+
+				<button class="w-12 h-12 rounded-full flex items-center justify-center transition
+							   bg-primary hover:bg-primary/90 text-white disabled:bg-gray-300"
+						@onclick="OnSendClicked" disabled="@(!IsMessageSendable())">
+					<i class="bi bi-send text-white text-2xl"></i>
+				</button>
+			</div>
+		</div>
+
+	</div>
+
+    @*
+        Sidebar
+    *@
+
+	<div class="w-full md:w-80 border-t md:border-t-0 md:border-l border-lightcard dark:border-darkcard bg-lightbg dark:bg-darkbg">
+		<div class="overflow-y-auto h-60 md:h-full p-4">
+			@SidebarContent
+		</div>
+	</div>
+
+</div>
+
+<script>
+    window.scrollToBottom = (container) => {
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    };
+
+    window.resizeTextarea = (textarea) => {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    };
+
+    window.getScrollHeight = (el) => el.scrollHeight;
+
+    window.scrollToOffsetFromBottom = (el, previousScrollHeight) => {
+        const newScrollHeight = el.scrollHeight;
+        const scrollDifference = newScrollHeight - previousScrollHeight;
+        el.scrollTop = scrollDifference;
+    };
+
+    window.attachChatScrollToTopListener = (element, dotNetHelper) => {
+        if (!element) {
+            return;
+        }
+
+        element.addEventListener('scroll', () => {
+            if (element.scrollTop < 20) {
+                dotNetHelper.invokeMethodAsync('OnScrolledToTop');
+            }
+        });
+    };
+</script>
+
+@code {
+    [Parameter]
+    public bool CanSendMessages { get; set; } = false;
+
+    [Parameter]
+    public UserDto? CurrentUser { get; set; }
+
+    [Parameter]
+    public ChatThreadDto? CurrentChat { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSend { get; set; }
+
+    [Parameter]
+    public RenderFragment? SidebarContent { get; set; }
+
+    public List<ChatMessageDto> Messages { get; set; } = new();
+
+    private string NewMessageContent = string.Empty;
+
+    private CancellationTokenSource Cts = new();
+
+    private PeriodicTimer MessageTimeUpdateTimer;
+
+    private ElementReference ChatBodyRef;
+
+    private ElementReference TypeAreaRef;
+
+    private DotNetObjectReference<ChatApp>? DotNetRef;
+
+    private bool HasMoreMessages = true;
+
+    private bool IsLoadingOlderMessages = false;
+
+    private bool IsLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StartMessageTimeUpdater();
+
+        // Load messages
+
+        if (CurrentChat is not null)
+        {
+            Messages = await _ChatService.GetChatMessagesAsync(CurrentChat) ?? new();
+        }
+
+        await ConnectSignalR();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Attach chat scroll to top listener event
+
+        if (firstRender)
+        {
+            DotNetRef = DotNetObjectReference.Create(this);
+
+            await JS.InvokeVoidAsync("attachChatScrollToTopListener", ChatBodyRef, DotNetRef);
+        }
+
+        // Scroll to the bottom of the message list
+
+        if (Messages?.Any() is true)
+        {
+            await JS.InvokeVoidAsync("scrollToBottom", ChatBodyRef);
+        }
+    }
+
+    private void StartMessageTimeUpdater()
+    {
+        // Poll every 30 seconds
+
+        MessageTimeUpdateTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+        _ = Task.Run(async () =>
+        {
+            while (await MessageTimeUpdateTimer.WaitForNextTickAsync(Cts.Token))
+            {
+                // Force the UI to reload data, causing messages to refresh
+                // their display time
+
+                StateHasChanged();
+            }
+        });
+    }
+
+    private async Task OnBackClicked()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+
+    private async Task OnTypeAreaInput(ChangeEventArgs e)
+    {
+        await JS.InvokeVoidAsync("resizeTextarea", TypeAreaRef);
+    }
+
+    private async Task OnSendClicked()
+    {
+        // The message must be sendable
+
+        if (!IsMessageSendable())
+        {
+            return;
+        }
+
+        // Send event
+
+        await OnSend.InvokeAsync(NewMessageContent);
+
+        NewMessageContent = string.Empty;
+
+        // Let UI update
+
+        await Task.Yield();
+
+        // Scroll to the bottom to see the new message
+
+        await JS.InvokeVoidAsync("scrollToBottom", ChatBodyRef);
+
+        // Reset type area size
+
+        await JS.InvokeVoidAsync("resizeTextarea", TypeAreaRef);
+    }
+
+    [JSInvokable]
+    public async Task OnScrolledToTop()
+    {
+        if (IsLoadingOlderMessages || !HasMoreMessages || CurrentChat is null || Messages is null)
+        {
+            return;
+        }
+
+        // Get the start message (this is the earliest message currently
+        // loaded and will be used as the starting point for loading older
+        // messages)
+
+        ChatMessageDto? startMessage = Messages?.FirstOrDefault();
+
+        if (startMessage is null)
+        {
+            return;
+        }
+
+        // Load older messages
+
+        IsLoadingOlderMessages = true;
+
+        List<ChatMessageDto>? olderMessages = await _ChatService.GetChatMessagesAsync(CurrentChat, startMessage.PublicId);
+
+        if (olderMessages is not null && olderMessages.Any())
+        {
+            // Save the current scroll height
+
+            var previousScrollHeight = await JS.InvokeAsync<int>("getScrollHeight", ChatBodyRef);
+
+            // Insert older messages at the front of the list
+
+            Messages?.InsertRange(0, olderMessages);
+
+            StateHasChanged();
+
+            // Wait for UI
+
+            await Task.Yield();
+
+            // Restore scroll so it doesn't jump
+
+            await JS.InvokeVoidAsync("scrollToOffsetFromBottom", ChatBodyRef, previousScrollHeight);
+        }
+        else
+        {
+            // No more messages to load
+
+            HasMoreMessages = false;
+        }
+
+        IsLoadingOlderMessages = false;
+    }
+
+    private bool IsMessageSendable()
+    {
+        if (!CanSendMessages)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(NewMessageContent))
+        {
+            return false;
+        }
+
+        string trimmed = NewMessageContent.Trim();
+
+        // Disallow messages that are too long
+
+        if (trimmed.Length > 2000)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ***** SignalR ***** //
+
+    private HubConnection? _HubConnection;
+
+    private async Task ConnectSignalR()
+    {
+        if (CurrentChat is null)
+        {
+            return;
+        }
+
+        _HubConnection = new HubConnectionBuilder()
+            .WithUrl(_NavigationManager.ToAbsoluteUri($"/chathub?chatPublicId={CurrentChat.PublicId}"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _HubConnection.On<Tuple<string, ChatMessageDto>>("MessageCreated", data =>
+        {
+            string chatPublicId = data.Item1;
+            ChatMessageDto message = data.Item2;
+
+            if (chatPublicId == CurrentChat.PublicId)
+            {
+                Messages.Add(message);
+
+                StateHasChanged();
+            }
+        });
+
+        await _HubConnection.StartAsync();
+    }
+
+    // ***** Misc ***** //
+
+    public async ValueTask DisposeAsync()
+    {
+        await Cts.CancelAsync();
+        Cts.Dispose();
+
+        DotNetRef?.Dispose();
+
+        if (_HubConnection is not null)
+        {
+            await _HubConnection.StopAsync();
+            await _HubConnection.DisposeAsync();
+        }
+    }
+
+    // ***** Injections ***** //
+
+    [Inject]
+    private ChatService _ChatService { get; set; }
+
+    [Inject]
+    private NavigationManager _NavigationManager { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
+}

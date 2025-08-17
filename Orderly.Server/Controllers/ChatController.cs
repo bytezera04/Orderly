@@ -242,15 +242,14 @@ namespace Orderly.Server.Controllers
 
             // Perform message validations
 
-            string contentSanitized = message.Content.Trim();
-            contentSanitized = contentSanitized.Replace("\r\n", "\n").Replace("\r", "\n");
+            string content = message.Content.Trim();
 
-            if (string.IsNullOrWhiteSpace(contentSanitized))
+            if (string.IsNullOrWhiteSpace(content))
             {
                 return BadRequest("Message cannot be empty");
             }
 
-            if (contentSanitized.Length > 2000)
+            if (content.Length > 2000)
             {
                 return BadRequest("Message is too long");
             }
@@ -262,7 +261,7 @@ namespace Orderly.Server.Controllers
                 PublicId = await PublicIdGeneration.GenerateChatMessageId(_Context),
                 ChatThreadId = chat.Id,
                 SenderId = userId,
-                Content = contentSanitized
+                Content = content
             });
 
             return Created();

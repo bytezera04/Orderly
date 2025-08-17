@@ -20,50 +20,65 @@
 }
 else
 {
-    <ChatWindow CanSendMessages="true"
+    <ChatApp CanSendMessages="true"
                 CurrentUser="@CurrentUser"
                 CurrentChat="@CurrentChat"
-                Messages="@Messages"
                 OnSend="@OnMessageSend">
 
                 <SidebarContent>
                     @if (CurrentOrder is not null)
                     {
-                        <h5 class="user-select-none">Order Info</h5>
+                        <div class="p-4 flex flex-col h-full min-h-0 md:h-full">
+                            <!-- Title -->
 
-                        <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">Order ID</div>
-                            <div class="sidebar-value public-id">#@CurrentOrder.PublicId</div>
+                            <h5 class="text-lg font-semibold mb-4 text-lightfg dark:text-darkfg select-none">
+                                Order Info
+                            </h5>
+
+                            <!-- Fields -->
+
+                            <div class="flex flex-col gap-3 md:overflow-y-auto">
+                                <div>
+                                    <div class="text-xs uppercase text-lightfg/70 dark:text-darkfg/70 select-none">Order ID</div>
+                                    <div class="text-sm font-medium text-primary">#@CurrentOrder.PublicId</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs uppercase text-lightfg/70 dark:text-darkfg/70 select-none">Status</div>
+                                    <div class="text-sm font-medium text-lightfg dark:text-darkfg">@CurrentOrder.Status</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs uppercase text-lightfg/70 dark:text-darkfg/70 select-none">Product</div>
+                                    <div class="text-sm font-medium text-lightfg dark:text-darkfg">@CurrentOrder.ProductDisplayName</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs uppercase text-lightfg/70 dark:text-darkfg/70 select-none">Total Price</div>
+                                    <div class="text-sm font-medium text-lightfg dark:text-darkfg">£@CurrentOrder.Price</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs uppercase text-lightfg/70 dark:text-darkfg/70 select-none">@OtherUserTitle</div>
+                                    <div class="text-sm font-medium text-lightfg dark:text-darkfg">@OtherUserDisplayName</div>
+                                </div>
+                            </div>
+
+                            <!-- View More Button -->
+
+                            <button class="mt-6 w-full flex items-center justify-center px-4 py-2 text-sm font-medium
+                                            border border-primary rounded-xl transition
+                                            text-primary dark:text-primary
+                                            hover:bg-primary hover:text-white dark:hover:bg-primary/90"
+                                    @onclick="ShowOrderViewModal">
+                                <i class="bi bi-box-arrow-up-right mr-2"></i>
+                                View More
+                            </button>
                         </div>
-
-                        <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">Status</div>
-                            <div class="sidebar-value">@CurrentOrder.Status</div>
-                        </div>
-
-                        <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">Product</div>
-                            <div class="sidebar-value">@CurrentOrder.ProductDisplayName</div>
-                        </div>
-
-                        <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">Total Price</div>
-                            <div class="sidebar-value">@CurrentOrder.Price</div>
-                        </div>
-
-                        <div class="sidebar-section">
-                            <div class="sidebar-label user-select-none">@OtherUserTitle</div>
-                            <div class="sidebar-value">@OtherUserDisplayName</div>
-                        </div>
-
-                        <button class="btn btn-outline-primary mt-3"
-                                @onclick="ShowOrderViewModal">
-                            <i class="bi bi-box-arrow-up-right me-1"></i>
-                            View More
-                        </button>
                     }
                 </SidebarContent>
-    </ChatWindow>
+
+    </ChatApp>
 }
 
 <!-- Order View Modal -->
@@ -153,14 +168,6 @@ else
         {
             return;
         }
-
-        // Load messages
-
-        Messages = await _ChatService.GetChatMessagesAsync(CurrentChat) ?? new();
-
-        // Connect SignalR
-
-        await ConnectSignalR();
     }
 
     private async Task OnMessageSend(string content)
@@ -186,38 +193,6 @@ else
         IsOrderViewModalVisible = false;
 
         return Task.CompletedTask;
-    }
-
-    // ***** SignalR ***** //
-
-    private HubConnection? _HubConnection;
-
-    private async Task ConnectSignalR()
-    {
-        if (CurrentChat is null)
-        {
-            return;
-        }
-
-        _HubConnection = new HubConnectionBuilder()
-            .WithUrl(_NavigationManager.ToAbsoluteUri($"/chathub?chatPublicId={CurrentChat.PublicId}"))
-            .WithAutomaticReconnect()
-            .Build();
-
-        _HubConnection.On<Tuple<string, ChatMessageDto>>("MessageCreated", data =>
-        {
-            string chatPublicId = data.Item1;
-            ChatMessageDto message = data.Item2;
-
-            if (chatPublicId == CurrentChat.PublicId)
-            {
-                Messages.Add(message);
-
-                StateHasChanged();
-            }
-        });
-
-        await _HubConnection.StartAsync();
     }
 
     [Inject]
