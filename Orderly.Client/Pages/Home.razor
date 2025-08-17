@@ -27,7 +27,7 @@
                     A modern portfolio marketplace for buying products, managing orders and more. Build your personal store with Orderly.
                 </p>
 
-                <NavLink href="/dashboard" class="inline-block px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow hover:shadow-md hover:bg-blue-700 transition-all duration-300">
+                <NavLink href="/dashboard/overview" class="inline-block px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow hover:shadow-md hover:bg-blue-700 transition-all duration-300">
                     Get Started
                 </NavLink>
             </div>
@@ -56,8 +56,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach (var card in FlipCards)
                 {
-                    <div class="fade-in perspective w-full h-72">
-                        <div @onclick="() => card.IsFlipped = !card.IsFlipped" class="relative w-full h-full duration-700 transform-style-preserve-3d cursor-pointer @((card.IsFlipped ? "rotate-y-180" : ""))">
+                    <div class="fade-in perspective w-full h-72 flip-card cursor-pointer select-none">
+                        <div class="relative w-full h-full flip-card-inner">
                             <!-- Front -->
 
                             <div class="absolute w-full h-full backface-hidden bg-lightcard dark:bg-darkcard rounded-xl shadow-lg flex flex-col justify-center items-center p-6 text-center">
@@ -73,6 +73,7 @@
                             </div>
                         </div>
                     </div>
+
                 }
             </div>
         </div>
@@ -128,16 +129,23 @@
     .perspective {
         perspective: 1000px;
     }
-    .transform-style-preserve-3d {
+
+    .flip-card-inner {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.7s;
         transform-style: preserve-3d;
     }
+
     .backface-hidden {
         backface-visibility: hidden;
     }
+
     .rotate-y-180 {
         transform: rotateY(180deg);
     }
-    .group-hover\:rotate-y-180:hover {
+
+    .flip-card:hover .flip-card-inner {
         transform: rotateY(180deg);
     }
 </style>
@@ -175,30 +183,21 @@
             Title = "Easy Order Management",
             Phrase = "Simplify your workflow",
             Description = "Track, update, and fulfill orders with ease. Our dashboard allows you to manage multiple products and orders efficiently. Notifications and status updates keep you on top of every transaction.",
-            Icon = @"
-                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 3h18v18H3z' />
-                </svg>"
+            Icon = @"<i class='bi bi-journal-check text-primary fs-1 mb-4'></i>"
         },
         new FlipCard
         {
             Title = "Fast & Responsive",
-            Phrase = "Lightning quick performance",
+            Phrase = "Lightning fast performance",
             Description = "Experience blazing speed with a frontend built on Blazor WebAssembly and optimized Tailwind CSS. Every action is near-instant, whether browsing orders or editing products. Works beautifully on any device.",
-            Icon = @"
-                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 10V3L4 14h7v7l9-11h-7z' />
-                </svg>"
+            Icon = @"<i class='bi bi-lightning-charge text-primary fs-1 mb-4'></i>"
         },
         new FlipCard
         {
             Title = "Modern Design",
             Phrase = "Clean and minimal UI",
             Description = "Enjoy a contemporary interface that is both visually appealing and highly functional. Dark and light modes adapt seamlessly. Every element, from cards to galleries, is designed to enhance usability.",
-            Icon = @"
-                <svg class='w-12 h-12 text-primary mb-4' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' />
-                </svg>"
+            Icon = @"<i class='bi bi-palette text-primary fs-1 mb-4'></i>"
         }
     };
 
