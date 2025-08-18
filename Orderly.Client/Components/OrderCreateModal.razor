@@ -4,70 +4,147 @@
 
 @namespace Orderly.Client.Components
 
-<link rel="stylesheet" href="css/modal.css" />
-
-<script src="js/formatting.js"></script>
-
 @if (IsVisible && ProductToOrder is not null)
 {
-    <div class="modal-backdrop" tabindex="-1">
-        <div class="modal-content" style="max-width: 520px;">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition">
+        <div class="bg-lightcard dark:bg-darkcard rounded-2xl shadow-xl max-w-lg w-full mx-4 p-6 relative">
             @*
-                Input
+                Header
             *@
 
-            <h3 id="orderModalTitle">Buy: @ProductToOrder.Name</h3>
+            <!-- Close Button -->
 
-            <dl>
-                <dt>Price:</dt>
-                <dd>@ProductToOrder.Price.ToString("C")</dd>
+            <button class="absolute top-4 right-4 text-lightfg dark:text-darkfg hover:text-primary transition"
+                    @onclick="OnCancelClicked">
+                &times;
+            </button>
 
-                <dt>Quantity:</dt>
-                <dd>
-                    <input type="number"
-                           min="1"
-                           max="@ProductToOrder.Stock"
-                           step="1"
-                           class="form-control"
-                           @bind-value="Quantity"
-                           @bind-value:event="oninput" />
-                </dd>
+            <!-- Title -->
 
-                <dt>Notes:</dt>
-                <dd>
-                    <textarea rows="3" placeholder="Add order notes..." maxlength="250" @bind="Notes"></textarea>
-                </dd>
-
-                <dt>Total:</dt>
-                <dd><strong>@TotalPrice.ToString("C")</strong></dd>
-            </dl>
+            <h2 class="text-2xl font-bold mb-4 text-lightfg dark:text-darkfg">Create Order</h2>
 
             @*
-                Errors
+                Product Info
             *@
 
-            @if (ErrorMessages is not null && ErrorMessages.Any())
+            <div class="mb-6 p-4 rounded-lg bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700">
+                <!-- Name -->
+
+                <h3 class="text-xl font-semibold text-primary mb-2">@ProductToOrder.Name</h3>
+
+                <!-- Description-->
+
+                <p class="text-sm text-lightfg/80 dark:text-darkfg/80 mb-3">
+                    @ProductToOrder.Description
+                </p>
+
+                <!-- Stock and Price-->
+
+                <div class="flex items-center justify-between text-sm mb-4">
+                    <span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                        Stock: @ProductToOrder.Stock
+                    </span>
+                    <span class="font-semibold text-lightfg dark:text-darkfg">
+                        Price: <span class="text-money">@ProductToOrder.Price.ToString("C")</span>
+                    </span>
+                </div>
+
+                <!-- View Product Button -->
+
+                <button class="w-full px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-secondary transition"
+                        @onclick="OpenProductViewModal">
+                    View Product
+                </button>
+            </div>
+
+            @*
+                Messages
+            *@
+
+            <!-- Out of Stock -->
+
+            @if (ProductToOrder.Stock < 1)
             {
-                <div class="alert alert-danger" role="alert">
+                <div class="mb-4 p-3 rounded-md bg-red-100 dark:bg-red-900/40 border border-red-400 dark:border-red-700">
+                    <p class="text-red-700 dark:text-red-300 text-sm">Out of Stock</p>
+                </div>
+            }
+
+            <!-- Errors -->
+
+            @if (ErrorMessages?.Any() is true)
+            {
+                <div class="mb-4 p-3 rounded-md bg-red-100 dark:bg-red-900/40 border border-red-400 dark:border-red-700">
                     @foreach (var error in ErrorMessages)
                     {
-                        <div>@error</div>
+                        <p class="text-red-700 dark:text-red-300 text-sm">@error</p>
                     }
                 </div>
             }
 
             @*
-                Actions
+                Form
             *@
 
-            <div class="modal-actions">
-                <button class="modal-btn cancel" @onclick="OnCancelClicked">Cancel</button>
+            <div class="space-y-4">
+                <!-- Quantity -->
 
-                <button class="modal-btn primary" @onclick="OnCreateClicked">Buy</button>
+                <div>
+                    <label class="block text-lightfg dark:text-darkfg mb-1">Quantity</label>
+                    <input type="number"
+                           min="1"
+                           max="@ProductToOrder.Stock"
+                           class="w-full rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg"
+                           @bind="Quantity"
+                           @bind:event="onchange" />
+                </div>
+
+                <!-- Notes -->
+
+                <div>
+                    <label class="block text-lightfg dark:text-darkfg mb-1">Notes</label>
+                    <textarea class="w-full rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg"
+                              rows="3"
+                              placeholder="Optional notes..."
+                              @bind="Notes"></textarea>
+                </div>
+
+                <!-- Total Price -->
+
+                <div class="text-right text-lightfg/90 dark:text-darkfg/90 font-semibold">
+                    Total: <span class="@(TotalPrice > 0 ? "text-money" : "")">@TotalPrice.ToString("C")</span>
+                </div>
+            </div>
+
+            @*
+                Footer
+            *@
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <!-- Cancel Button -->
+
+                <button class="px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-700 text-lightfg dark:text-darkfg hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+                        @onclick="OnCancelClicked">
+                    Cancel
+                </button>
+
+                <!-- Create Order Button -->
+
+                <button class="px-4 py-2 rounded-md bg-primary text-white hover:bg-secondary transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        @onclick="OnCreateClicked"
+                        disabled="@(!CanPurchase)">
+                    Create Order
+                </button>
             </div>
         </div>
     </div>
 }
+
+<!-- Product View Modal-->
+
+<ProductViewModal ProductToView="@ProductToOrder"
+                  IsVisible="@IsProductViewModalVisible"
+                  OnClose="@CloseProductViewModal" />
 
 @code {
     [Parameter]
@@ -84,7 +161,29 @@
 
     private List<string>? ErrorMessages;
 
-    private int Quantity = 0;
+    private int _Quantity = 0;
+    private int Quantity
+    {
+        get => _Quantity;
+        set
+        {
+            if (ProductToOrder is not null)
+            {
+                if (value < 1)
+                {
+                    _Quantity = 1;
+                }
+                else if(value > ProductToOrder.Stock)
+                {
+                    _Quantity = ProductToOrder.Stock;
+                }
+                else
+                {
+                    _Quantity = value;
+                }
+            }
+        }
+    }
 
     private string Notes = string.Empty;
 
@@ -103,7 +202,7 @@
         get
         {
             return ProductToOrder is not null
-                && ProductToOrder.Stock > Quantity;
+                && ProductToOrder.Stock >= Quantity;
         }
     }
 
@@ -154,6 +253,22 @@
         Notes = string.Empty;
         ErrorMessages = null;
     }
+
+    // ***** Product View Modal ***** //
+
+    private bool IsProductViewModalVisible = false;
+
+    private void OpenProductViewModal()
+    {
+        IsProductViewModalVisible = true;
+    }
+
+    private void CloseProductViewModal()
+    {
+        IsProductViewModalVisible = false;
+    }
+
+    // ***** Injects ***** //
 
     [Inject]
     private OrderService _OrderService { get; set; }
