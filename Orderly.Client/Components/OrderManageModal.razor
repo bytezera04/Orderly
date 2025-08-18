@@ -2,30 +2,48 @@
 @using Orderly.Client.Services
 @using Orderly.Shared.Dtos
 
-<link rel="stylesheet" href="css/modal.css" />
-
 @if (IsVisible && OrderToManage is not null)
 {
     <div class="modal-backdrop">
-        <div class="modal-content" @onclick:stopPropagation="true">
-            <h3>Manage Order</h3>
+        <div class="modal-content max-w-lg mx-auto p-6 rounded-xl bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700 shadow-lg">
+            @*
+                Header
+            *@
 
-            <dl>
-                <dt>Order ID:</dt>
-                <dd>@OrderToManage.PublicId</dd>
+            <!-- Title -->
 
-                <dt>Product:</dt>
-                <dd>@(OrderToManage.Product?.Name ?? "(Deleted Product)")</dd>
+            <h3 class="text-2xl font-bold text-primary mb-6">Manage Order</h3>
 
-                <dt>@UserRole:</dt>
-                <dd>@GetOtherUserName()</dd>
-            </dl>
+            @*
+                Order Info
+            *@
+
+            <div class="mb-6 p-4 rounded-lg bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700">
+                <h4 class="text-lg font-semibold text-lightfg dark:text-darkfg mb-2">
+                    Order ID: <span class="text-primary">#@OrderToManage.PublicId</span>
+                </h4>
+
+                <p class="text-sm text-lightfg/80 dark:text-darkfg/80 mb-2">
+                    Product: @OrderToManage.ProductDisplayName
+                </p>
+
+                <p class="text-sm text-lightfg/80 dark:text-darkfg/80">
+                    @OtherUserRole: <span class="font-medium">@OtherUserName</span>
+                </p>
+            </div>
+
+            @*
+                Order Management
+            *@
 
             @if (CanEditOrders)
             {
-                <div class="form-group" style="margin-top: 1.75rem;">
-                    <label for="status-select" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Status:</label>
-                    <select id="status-select" @bind="EditableOrder.Status" disabled="@(!IsStatusModifiable())">
+                <!-- Edit order status -->
+
+                <div class="mb-6">
+                    <label class="block text-lightfg dark:text-darkfg mb-1 font-semibold">Status</label>
+                    <select class="w-full rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg"
+                            @bind="EditableOrder.Status" disabled="@(!IsStatusModifiable())">
                         @foreach (var status in StatusOptions)
                         {
                             <option value="@status">@status</option>
@@ -35,37 +53,60 @@
             }
             else if (CanCancelOrders)
             {
-                <div class="form-group" style="margin-top: 2rem;">
-                    <p style="color: var(--fg); font-size: 0.95rem;">
+                <!-- Cancel order option-->
+
+                <div class="mb-6">
+                    <p class="text-sm text-lightfg/80 dark:text-darkfg/80">
                         Are you sure you want to cancel this order?
                     </p>
                 </div>
             }
 
-            <div class="modal-actions">
-                <button class="modal-btn cancel" @onclick="OnCloseClicked">Close</button>
+            @*
+                Actions
+            *@
+
+            <div class="flex justify-end gap-3">
+                <!-- Close Modal Button -->
+
+                <button class="px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:opacity-90 transition"
+                        @onclick="OnCloseClicked">
+                    Close
+                </button>
 
                 @if (CanEditOrders)
                 {
-                    <button class="modal-btn primary" @onclick="OnEditClicked" disabled="@(!CanSubmitEdit())">
+                    <!-- Edit Order Button -->
+
+                    <button class="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-secondary transition"
+                            @onclick="OnEditClicked" disabled="@(!CanSubmitEdit())">
                         Save
                     </button>
                 }
                 else if (CanCancelOrders)
                 {
-                    <button class="modal-btn danger" @onclick="OnCancelClicked" disabled="@(!CanSubmitCancel())">Cancel Order</button>
+                    <!-- Cancel Order Button -->
+
+                    <button class="px-4 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700 transition"
+                            @onclick="OnCancelClicked" disabled="@(!CanSubmitCancel())">
+                        Cancel Order
+                    </button>
                 }
             </div>
 
             @*
-                Let the user know if they aren't able to edit the order
+                Footer
             *@
+
+            <!-- Status Change Not Allowed -->
 
             @if (CanEditOrders || CanCancelOrders)
             {
                 if (!IsStatusModifiable())
                 {
-                    <div class="mt-4 alert alert-danger" role="alert">This order can't be modified because it has either been complete or cancelled.</div>
+                    <div class="mt-4 px-4 py-2 rounded-md bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+                        This order can't be modified because it has either been completed or cancelled.
+                    </div>
                 }
             }
         </div>
@@ -96,6 +137,31 @@
 
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    private string OtherUserRole
+    {
+        get
+        {
+            return UserRole == "Seller"
+                ? "Customer"
+                : "Seller";
+        }
+    }
+
+    private string OtherUserName
+    {
+        get
+        {
+            if (OrderToManage is null)
+            {
+                return "Unknown";
+            }
+
+            return UserRole == "Seller"
+                ? OrderToManage.CustomerDisplayName
+                : OrderToManage.ProductOwnerDisplayName;
+        }
+    }
 
     ///  <summary>
     ///     Editable order, used to write changes to before the user
@@ -226,30 +292,6 @@
         // Status change can be submitted
 
         return true;
-    }
-
-    private string GetOtherUserName()
-    {
-        if (UserRole == "Seller")
-        {
-            return OrderToManage?.Customer?.FullName ?? "(Deleted User)";
-        }
-        else
-        {
-            return OrderToManage?.Product?.Owner?.FullName ?? "(Deleted User)";
-        }
-    }
-
-    private string GetDisplayStyle()
-    {
-        if (OrderToManage is not null)
-        {
-            return "display:flex;";
-        }
-        else
-        {
-            return "display:none;";
-        }
     }
 
     [Inject]
