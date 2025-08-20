@@ -8,6 +8,10 @@
 
 @namespace Orderly.Client.Components
 
+@{
+    string? previousSenderId = null;
+}
+
 <style>
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -60,23 +64,35 @@
 
 				@foreach (var msg in Messages)
 				{
-					bool isMe = msg.Sender?.PublicId == CurrentUser?.PublicId;
+                    bool isMe = msg.Sender?.PublicId == CurrentUser?.PublicId;
+                    bool showSenderName = msg.Sender?.PublicId != previousSenderId && !isMe;
 
-					<div class="flex @(isMe ? "justify-end" : "justify-start")">
-						<div class="max-w-xs md:max-w-md px-4 py-2 rounded-2xl text-sm shadow-md
-									@(isMe
-									  ? "bg-blue-500 dark:bg-blue-600 text-white rounded-br-none"
-									  : "bg-gray-100 dark:bg-darkcard text-lightfg dark:text-darkfg rounded-bl-none")">
+                    // Only show sender for others, not self
+
+                    <div class="flex @(isMe ? "justify-end" : "justify-start") mb-1">
+                        <div class="max-w-xs md:max-w-md px-4 py-2 rounded-2xl text-sm shadow-md
+                                    @(isMe
+                                        ? "bg-blue-500 dark:bg-blue-600 text-white rounded-br-none"
+                                        : "bg-gray-100 dark:bg-darkcard text-lightfg dark:text-darkfg rounded-bl-none")">
+
+                            @if (showSenderName && msg.Sender is not null)
+                            {
+                                <div class="font-semibold text-sm mb-1">@msg.Sender.FullName</div>
+                            }
 
                             <div class="whitespace-pre-wrap">
-								@msg.Content
-							</div>
+                                @msg.Content
+                            </div>
 
-							<div class="text-xs opacity-70 mt-1 @(isMe ? "text-right" : "text-left")">
-								@DateTimeHelper.ToShortTimeAgo(msg.CreatedAt)
-							</div>
-						</div>
-					</div>
+                            <div class="text-xs opacity-70 mt-1 @(isMe ? "text-right" : "text-left")">
+                                @DateTimeHelper.ToShortTimeAgo(msg.CreatedAt)
+                            </div>
+                        </div>
+                    </div>
+
+                    // Update previous sender
+
+                    previousSenderId = msg.Sender?.PublicId;
 				}
 			}
 		</div>

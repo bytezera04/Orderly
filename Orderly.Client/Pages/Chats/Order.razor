@@ -136,8 +136,8 @@ else
         get
         {
             return (IsSeller
-                ? CurrentOrder?.ProductOwnerDisplayName
-                : CurrentOrder?.CustomerDisplayName) ?? string.Empty;
+                ? CurrentOrder?.CustomerDisplayName
+                : CurrentOrder?.ProductOwnerDisplayName) ?? string.Empty;
         }
     }
 
