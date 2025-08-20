@@ -13,16 +13,29 @@
          @onclick:stopPropagation="true">
 
         <div class="bg-lightbg dark:bg-darkbg rounded-2xl shadow-2xl w-[95%] sm:max-w-lg md:max-w-2xl p-4 sm:p-6 relative">
-            <!-- Header -->
+            @*
+                Header
+            *@
+
             <div class="flex justify-between items-center mb-6">
+                <!-- Title -->
+
                 <h3 class="text-2xl font-bold text-primary">Edit Product</h3>
+
+                <!-- Cancel Button -->
+
                 <button class="text-gray-400 hover:text-red-500 transition"
                         @onclick="OnCancelClicked">
                     ✕
                 </button>
             </div>
 
+            @*
+                Messages
+            *@
+
             <!-- Errors -->
+
             @if (ErrorMessages is not null && ErrorMessages.Any())
             {
                 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm">
@@ -35,9 +48,13 @@
                 </div>
             }
 
-            <!-- Form -->
+            @*
+                Form
+            *@
+
             <div class="space-y-5">
                 <!-- Name -->
+
                 <div>
                     <label class="block font-medium text-sm text-lightfg dark:text-darkfg mb-1">Name</label>
                     <input type="text"
@@ -46,6 +63,7 @@
                 </div>
 
                 <!-- Description -->
+
                 <div>
                     <label class="block font-medium text-sm text-lightfg dark:text-darkfg mb-1">Description</label>
                     <textarea rows="4"
@@ -54,6 +72,7 @@
                 </div>
 
                 <!-- Category -->
+
                 <div>
                     <label class="block font-medium text-sm text-lightfg dark:text-darkfg mb-1">Category</label>
                     <select class="w-full rounded-lg border border-gray-300 dark:border-gray-600 p-2 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -66,6 +85,7 @@
                 </div>
 
                 <!-- Price & Stock -->
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-medium text-sm text-lightfg dark:text-darkfg mb-1">Price</label>
@@ -85,6 +105,7 @@
                 </div>
 
                 <!-- Tags -->
+
                 <div>
                     <label class="block font-medium text-sm text-lightfg dark:text-darkfg mb-1">Tags</label>
                     <input id="tagsInput"
@@ -94,12 +115,20 @@
                 </div>
             </div>
 
-            <!-- Actions -->
+            @*
+                Actions
+            *@
+
             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+                <!-- Cancel Button -->
+
                 <button class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                         @onclick="OnCancelClicked">
                     Cancel
                 </button>
+
+                <!-- Save Button -->
+
                 <button class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
                         @onclick="OnSaveClicked">
                     Save Changes

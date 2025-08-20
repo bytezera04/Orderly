@@ -3,28 +3,62 @@
 
 @if (IsVisible && ProductToDelete is not null)
 {
-    <div class="modal-backdrop" tabindex="-1">
-        <div class="modal-content">
-            <h3 class="text-danger">Delete Product</h3>
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-lightcard dark:bg-darkcard rounded-2xl shadow-2xl w-[95%] sm:max-w-md p-6 relative"
+             @onclick:stopPropagation="true">
 
-            <p>
-                Are you sure you want to delete <strong>@ProductToDelete.Name</strong>?
-                This change is permanent and cannot be undone.
-            </p>
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-red-600 dark:text-red-400">Delete Product</h3>
+                <button class="text-gray-400 hover:text-red-500 transition"
+                        @onclick="OnCancelClicked">
+                    ✕
+                </button>
+            </div>
 
-            @if (ErrorMessages is not null && ErrorMessages.Any())
+            <!-- Errors -->
+            @if (ErrorMessages?.Any() is true)
             {
-                <div class="alert alert-danger" role="alert">
-                    @foreach (var error in ErrorMessages)
-                    {
-                        <div>@error</div>
-                    }
+                <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm">
+                    <ul class="list-disc pl-4">
+                        @foreach (var error in ErrorMessages)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
                 </div>
             }
 
-            <div class="modal-actions">
-                <button class="modal-btn cancel" @onclick="OnCancelClicked">Cancel</button>
-                <button class="modal-btn danger" @onclick="OnDeleteClicked">Delete</button>
+            <!-- Confirmation Message -->
+            <p class="text-lightfg dark:text-darkfg mb-4">
+                Are you sure you want to delete
+                <span class="font-semibold text-primary">@ProductToDelete.Name</span>?
+                This action cannot be undone.
+            </p>
+
+            <!-- Product Info -->
+            <div class="mb-4 p-4 rounded-lg bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700">
+                <p class="text-sm text-lightfg/80 dark:text-darkfg/80 mb-2">@ProductToDelete.Description</p>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                        Stock: @ProductToDelete.Stock
+                    </span>
+                    <span class="font-semibold text-lightfg dark:text-darkfg">
+                        Price: <span class="text-money">£@ProductToDelete.Price</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                <button class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        @onclick="OnCancelClicked">
+                    Cancel
+                </button>
+                <button class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                        @onclick="OnDeleteClicked">
+                    Confirm Delete
+                </button>
             </div>
         </div>
     </div>
@@ -68,13 +102,25 @@
         {
             ErrorMessages = errors;
         }
+
+        Reset();
     }
 
     private async Task OnCancelClicked()
     {
+        Reset();
+
         await OnCancel.InvokeAsync();
     }
 
-    [Inject] ProductService _ProductService { get; set; }
-    [Inject] IJSRuntime JS { get; set; }
+    private void Reset()
+    {
+        ErrorMessages?.Clear();
+    }
+
+    [Inject]
+    private ProductService _ProductService { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; }
 }

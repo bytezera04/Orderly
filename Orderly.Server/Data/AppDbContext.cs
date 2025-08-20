@@ -192,12 +192,14 @@ namespace Orderly.Server.Data
                 entity.HasOne(o => o.Product)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(o => o.ProductId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(o => o.Customer)
                     .WithMany(u => u.Orders)
                     .HasForeignKey(o => o.CustomerId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.Property(e => e.Status)
                     .IsRequired()
