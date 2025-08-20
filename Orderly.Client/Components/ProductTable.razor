@@ -90,14 +90,16 @@
                                         @if (CanEditProducts)
                                         {
                                             <button class="text-blue-500 hover:text-blue-600 transition text-lg"
-                                                    @onclick="@(() => OpenEditModal(product))">
+                                                    @onclick="@(() => OpenEditModal(product))"
+                                                    @onclick:stopPropagation="true">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </button>
                                         }
                                         @if (CanDeleteProducts)
                                         {
                                             <button class="text-red-500 hover:text-red-600 transition text-lg"
-                                                    @onclick="@(() => OpenDeleteModal(product))">
+                                                    @onclick="@(() => OpenDeleteModal(product))"
+                                                    @onclick:stopPropagation="true">
                                                 <i class="bi bi-trash-fill"></i>
                                             </button>
                                         }
@@ -149,14 +151,16 @@
                         @if (CanEditProducts)
                         {
                             <button class="px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600"
-                                    @onclick="@(() => OpenEditModal(product))">
+                                    @onclick="() => OpenEditModal(product)"
+                                    @onclick:stopPropagation="true">
                                 Edit
                             </button>
                         }
                         @if (CanDeleteProducts)
                         {
                             <button class="px-3 py-1 rounded-md bg-red-500 text-white text-sm hover:bg-red-600"
-                                    @onclick="@(() => OpenDeleteModal(product))">
+                                    @onclick="() => OpenDeleteModal(product)"
+                                    @onclick:stopPropagation="true">
                                 Delete
                             </button>
                         }
