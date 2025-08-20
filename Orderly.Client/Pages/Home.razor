@@ -91,13 +91,21 @@
 
             @foreach (var item in DashboardShowcaseItems)
             {
-                <div class="fade-in flex flex-col lg:flex-row items-center gap-8">
-                    <div class="lg:flex-1">
-                        <img src="@item.Img" alt="@item.Title" class="rounded-xl shadow-xl w-full max-w-md mx-auto lg:mx-0 transform transition-transform duration-500 hover:scale-105" />
-                    </div>
-                    <div class="lg:flex-1 text-center lg:text-left space-y-4">
+                <div class="fade-in flex flex-col items-center gap-6">
+                    <!-- Text -->
+
+                    <div class="text-center space-y-4 max-w-2xl">
                         <h3 class="text-2xl font-bold text-lightfg dark:text-darkfg">@item.Title</h3>
-                        <p class="text-lightfg/90 dark:text-darkfg/90">@item.Description</p>
+                        <p class="text-left text-lightfg/90 dark:text-darkfg/90">
+                            @item.Description
+                        </p>
+                    </div>
+
+                    <!-- Image -->
+
+                    <div class="w-full">
+                        <img src="@item.Img" alt="@item.Title"
+                             class="rounded-xl shadow-xl w-full max-w-3xl mx-auto transform transition-transform duration-500 hover:scale-105" />
                     </div>
                 </div>
             }
