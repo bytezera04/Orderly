@@ -7,16 +7,29 @@
         <div class="bg-lightcard dark:bg-darkcard rounded-2xl shadow-2xl w-[95%] sm:max-w-md p-6 relative"
              @onclick:stopPropagation="true">
 
-            <!-- Header -->
+             @*
+                 Header
+             *@
+
             <div class="flex justify-between items-center mb-6">
+                <!-- Title -->
+
                 <h3 class="text-2xl font-bold text-red-600 dark:text-red-400">Delete Product</h3>
+
+                <!-- Cancel Button -->
+
                 <button class="text-gray-400 hover:text-red-500 transition"
                         @onclick="OnCancelClicked">
                     ✕
                 </button>
             </div>
 
+            @*
+                Messages
+            *@
+
             <!-- Errors -->
+
             @if (ErrorMessages?.Any() is true)
             {
                 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm">
@@ -30,15 +43,25 @@
             }
 
             <!-- Confirmation Message -->
+
             <p class="text-lightfg dark:text-darkfg mb-4">
                 Are you sure you want to delete
                 <span class="font-semibold text-primary">@ProductToDelete.Name</span>?
                 This action cannot be undone.
             </p>
 
-            <!-- Product Info -->
+
+            @*
+                Product Info
+            *@
+
             <div class="mb-4 p-4 rounded-lg bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700">
+                <!-- Description -->
+
                 <p class="text-sm text-lightfg/80 dark:text-darkfg/80 mb-2">@ProductToDelete.Description</p>
+
+                <!-- Price & Stock-->
+
                 <div class="flex justify-between items-center text-sm">
                     <span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
                         Stock: @ProductToDelete.Stock
@@ -49,12 +72,20 @@
                 </div>
             </div>
 
-            <!-- Actions -->
+            @*
+                Actions
+            *@
+
             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                <!-- Cancel Button -->
+
                 <button class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                         @onclick="OnCancelClicked">
                     Cancel
                 </button>
+
+                <!-- Delete Button -->
+
                 <button class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
                         @onclick="OnDeleteClicked">
                     Confirm Delete
