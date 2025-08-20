@@ -4,8 +4,8 @@
 
 @if (IsVisible && OrderToManage is not null)
 {
-    <div class="modal-backdrop">
-        <div class="modal-content max-w-lg mx-auto p-6 rounded-xl bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700 shadow-lg">
+    <div class="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+        <div class="max-w-lg w-full mx-4 p-6 rounded-xl bg-lightcard dark:bg-darkcard border border-gray-200 dark:border-gray-700 shadow-lg">
             @*
                 Header
             *@
@@ -18,14 +18,20 @@
                 Order Info
             *@
 
-            <div class="mb-6 p-4 rounded-lg bg-lightbg dark:bg-darkbg border border-gray-200 dark:border-gray-700">
+            <div class="mb-6 p-4 rounded-lg bg-lightbg/80 dark:bg-darkcard border border-gray-300 dark:border-gray-700 shadow-sm">
+                <!-- Order ID -->
+
                 <h4 class="text-lg font-semibold text-lightfg dark:text-darkfg mb-2">
                     Order ID: <span class="text-primary">#@OrderToManage.PublicId</span>
                 </h4>
 
+                <!-- Product Name -->
+
                 <p class="text-sm text-lightfg/80 dark:text-darkfg/80 mb-2">
                     Product: @OrderToManage.ProductDisplayName
                 </p>
+
+                <!-- Other User's Name -->
 
                 <p class="text-sm text-lightfg/80 dark:text-darkfg/80">
                     @OtherUserRole: <span class="font-medium">@OtherUserName</span>
@@ -38,7 +44,7 @@
 
             @if (CanEditOrders)
             {
-                <!-- Edit order status -->
+                <!-- Edit Status -->
 
                 <div class="mb-6">
                     <label class="block text-lightfg dark:text-darkfg mb-1 font-semibold">Status</label>
@@ -53,9 +59,9 @@
             }
             else if (CanCancelOrders)
             {
-                <!-- Cancel order option-->
+                <!-- Cancel Order -->
 
-                <div class="mb-6">
+                <div class="mb-6 p-3 rounded-md bg-lightbg/80 dark:bg-darkcard border border-gray-300 dark:border-gray-700 shadow-sm">
                     <p class="text-sm text-lightfg/80 dark:text-darkfg/80">
                         Are you sure you want to cancel this order?
                     </p>
@@ -66,8 +72,8 @@
                 Actions
             *@
 
-            <div class="flex justify-end gap-3">
-                <!-- Close Modal Button -->
+            <div class="flex justify-end gap-3 mb-4">
+                <!-- Close Button -->
 
                 <button class="px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:opacity-90 transition"
                         @onclick="OnCloseClicked">
@@ -76,7 +82,7 @@
 
                 @if (CanEditOrders)
                 {
-                    <!-- Edit Order Button -->
+                    <!-- Edit Status Button -->
 
                     <button class="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-secondary transition"
                             @onclick="OnEditClicked" disabled="@(!CanSubmitEdit())">
@@ -95,7 +101,7 @@
             </div>
 
             @*
-                Footer
+                Messages
             *@
 
             <!-- Status Change Not Allowed -->
@@ -104,7 +110,7 @@
             {
                 if (!IsStatusModifiable())
                 {
-                    <div class="mt-4 px-4 py-2 rounded-md bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+                    <div class="mt-4 px-4 py-2 rounded-md bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm shadow-sm">
                         This order can't be modified because it has either been completed or cancelled.
                     </div>
                 }
