@@ -18,14 +18,20 @@
         <!-- Search Bar-->
 
         <input type="text"
-               placeholder="Search products..."
-               class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+               placeholder="Search orders..."
+               class="w-full px-4 py-2 border border-gray-300 rounded-md
+                  text-lightfg bg-lightbg
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                  dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
                @oninput="OnSearchInput" />
 
         <!-- Status Dropdown -->
 
-        <select class="w-full sm:w-auto px-4 py-2 border rounded-md h-[calc(2.5rem)] dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
-                @onchange=OnStatusInput>
+        <select class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md h-[calc(2.5rem)]
+                   text-lightfg bg-lightbg
+                   focus:outline-none focus:ring-2 focus:ring-primary
+                   dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+                @onchange="OnStatusInput">
 
             <option value="">All Statuses</option>
 

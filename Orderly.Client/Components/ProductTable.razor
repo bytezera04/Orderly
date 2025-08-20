@@ -18,13 +18,19 @@
 
         <input type="text"
                placeholder="Search products..."
-               class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+               class="w-full px-4 py-2 border border-gray-300 rounded-md
+                  bg-lightbg text-lightfg
+                  focus:outline-none focus:ring-2 focus:ring-primary
+                  dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
                @oninput="OnSearchInput" />
 
         <!-- Category Dropdown -->
 
-        <select class="w-full sm:w-auto px-4 py-2 border rounded-md h-[calc(2.5rem)] dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
-                @onchange=OnCategoryInput>
+        <select class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md h-[calc(2.5rem)]
+                   bg-lightbg text-lightfg
+                   focus:outline-none focus:ring-2 focus:ring-primary
+                   dark:bg-darkcard dark:border-darkborder dark:text-darkfg"
+                @onchange="OnCategoryInput">
 
             <option value="">All Categories</option>
 
