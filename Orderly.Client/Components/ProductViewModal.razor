@@ -13,50 +13,71 @@
 
 @if (IsVisible && ProductToView is not null)
 {
-    <div class="modal-backdrop">
-        <div class="modal-content" @onclick:stopPropagation="true">
-            <h3 class="user-select-none">Product Details</h3>
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-lightcard dark:bg-darkcard rounded-2xl shadow-2xl w-[95%] sm:max-w-2xl p-6 relative"
+             @onclick:stopPropagation="true">
 
-            <dl>
-                <dt class="user-select-none">Product ID:</dt>
-                <dd>@ProductToView.PublicId</dd>
+             @*
+                 Header
+             *@
 
-                <dt class="user-select-none">Name:</dt>
-                <dd>@ProductToView.Name</dd>
+            <div class="flex justify-between items-center mb-6">
+                <!-- Title -->
 
-                <dt class="user-select-none">Description:</dt>
-                <dd>@ProductToView.Description</dd>
+                <h3 class="text-2xl font-bold text-primary">@ProductToView.Name</h3>
 
-                <dt class="user-select-none">Category:</dt>
-                <dd>@ProductToView.Category</dd>
+                <!-- Close Button -->
 
-                <dt class="user-select-none">Price:</dt>
-                <dd>@ProductToView.Price.ToString("C")</dd>
+                <button class="text-gray-400 hover:text-red-500 transition"
+                        @onclick="OnCloseClicked">
+                    ✕
+                </button>
+            </div>
 
-                <dt class="user-select-none">Stock:</dt>
-                <dd>@ProductToView.Stock</dd>
+            @*
+                Product Info
+            *@
 
-                <dt class="user-select-none">Owner:</dt>
-                <dd>@(ProductToView.Owner?.FullName ?? "(Deleted User)")</dd>
+            <div class="space-y-4 text-lightfg dark:text-darkfg text-sm">
+                <!-- Description -->
 
-                <dt class="user-select-none">Tags:</dt>
-                <dd>
-                    @if (ProductToView.Tags?.Count > 0)
-                    {
-                        <input id="tagsInput" class="form-control" />
-                    }
-                    else
-                    {
-                        <em class="text-muted">(No tags)</em>
-                    }
-                </dd>
+                <p class="text-lightfg dark:text-darkfg">@ProductToView.Description</p>
 
-                <dt class="user-select-none">Created At:</dt>
-                <dd>@ProductToView.CreatedAt.ToString("f")</dd>
-            </dl>
+                <!-- Stock & Price -->
 
-            <div class="modal-actions">
-                <button class="modal-btn primary" @onclick="OnCloseClicked">Close</button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex justify-between">
+                        <span class="font-semibold">Stock:</span>
+                        <span class="text-primary">@ProductToView.Stock</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-semibold">Price:</span>
+                        <span class="text-money">£@ProductToView.Price.ToString("F2")</span>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+
+                @if (ProductToView.Tags?.Any() is true)
+                {
+                    <div>
+                        <label class="block font-medium text-sm mb-1 text-lightfg dark:text-darkfg">Tags</label>
+                        <input id="tagsInput" type="text" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 p-2 bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg" />
+                    </div>
+                }
+            </div>
+
+            @*
+                Actions
+            *@
+
+            <div class="mt-6 flex justify-end">
+                <!-- Close Button -->
+
+                <button class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
+                        @onclick="OnCloseClicked">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -99,5 +120,6 @@
         }
     }
 
-    [Inject] IJSRuntime JS { get; set; }
+    [Inject]
+    private IJSRuntime JS { get; set; }
 }

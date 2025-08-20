@@ -93,7 +93,8 @@
                                         @if (CanEditOrders || CanCancelOrders)
                                         {
                                             <button class="text-blue-500 hover:text-blue-600 transition text-lg"
-                                                    @onclick="@(() => OpenManageModal(order))">
+                                                    @onclick="@(() => OpenManageModal(order))"
+                                                    @onclick:stopPropagation="true">
                                                 <i class="bi bi-gear-fill"></i>
                                             </button>
                                         }
@@ -101,7 +102,8 @@
                                         @if (CanViewChat)
                                         {
                                             <button class="text-green-500 hover:text-green-600 transition text-lg"
-                                                    @onclick="() => NavigateToChat(order)">
+                                                    @onclick="() => NavigateToChat(order)"
+                                                    @onclick:stopPropagation="true">
                                                 <i class="bi bi-chat-dots-fill"></i>
                                             </button>
                                         }
