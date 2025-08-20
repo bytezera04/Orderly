@@ -1,5 +1,6 @@
 ﻿
 @using Orderly.Shared.Dtos
+@using Orderly.Shared.Helpers
 
 @namespace Orderly.Client.Components
 
@@ -7,42 +8,105 @@
 
 @if (IsVisible && OrderToView is not null)
 {
-    <div class="modal-backdrop">
-        <div class="modal-content" @onclick:stopPropagation="true">
-            <h3 class="user-select-none">Order Details</h3>
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-lightcard dark:bg-darkcard rounded-2xl shadow-2xl w-[95%] sm:max-w-lg p-6 relative"
+             @onclick:stopPropagation="true">
 
-            <dl>
-                <dt class="user-select-none">Order ID:</dt>
-                <dd>@OrderToView.PublicId</dd>
+             @*
+                 Header
+             *@
 
-                <dt class="user-select-none">Customer:</dt>
-                <dd>@(OrderToView.Customer?.FullName ?? "(Deleted User)")</dd>
+            <div class="flex justify-between items-center mb-6">
+                <!-- Title -->
 
-                <dt class="user-select-none">Product:</dt>
-                <dd>@(OrderToView.Product?.Name ?? "(Deleted Product)")</dd>
+                <h3 class="text-2xl font-bold text-primary">Order Details</h3>
 
-                <dt class="user-select-none">Status:</dt>
-                <dd>@OrderToView.Status</dd>
+                <!-- Close Button -->
 
-                <dt class="user-select-none">Quantity:</dt>
-                <dd>@OrderToView.Quantity</dd>
+                <button class="text-gray-400 hover:text-red-500 transition"
+                        @onclick="OnCloseClicked">
+                    ✕
+                </button>
+            </div>
 
-                <dt class="user-select-none">Price:</dt>
-                <dd>@OrderToView.Price.ToString("C")</dd>
+            @*
+                Order Info
+            *@
 
-                <dt class="user-select-none">Notes:</dt>
-                <dd>@OrderToView.Notes</dd>
+            <div class="space-y-3 text-sm text-lightfg dark:text-darkfg">
+                <!-- Order ID -->
 
-                <dt class="user-select-none">Created At:</dt>
-                <dd>@OrderToView.CreatedAt.ToString("f")</dd>
-            </dl>
+                <div class="flex justify-between">
+                    <span class="font-semibold">Order ID:</span>
+                    <span class="text-primary">#@OrderToView.PublicId</span>
+                </div>
 
-            <div class="modal-actions">
-                <button class="modal-btn primary" @onclick="OnCloseClicked">Close</button>
+                <!-- Product Name -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Product:</span>
+                    <span>@OrderToView.ProductDisplayName</span>
+                </div>
+
+                <!-- Customer Name -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Customer:</span>
+                    <span>@OrderToView.CustomerDisplayName</span>
+                </div>
+
+                <!-- Quantity -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Quantity:</span>
+                    <span>@OrderToView.Quantity</span>
+                </div>
+
+                <!-- Price -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Price:</span>
+                    <span class="text-money">£@OrderToView.Price.ToString("F2")</span>
+                </div>
+
+                <!-- Status -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Status:</span>
+                    <span>@OrderToView.Status</span>
+                </div>
+
+                <!-- Notes -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Notes:</span>
+                    <span class="text-gray-500 dark:text-gray-400">@OrderToView.Notes</span>
+                </div>
+
+                <!-- Created At -->
+
+                <div class="flex justify-between">
+                    <span class="font-semibold">Created:</span>
+                    <span>@DateTimeHelper.ToReadableDateShort(OrderToView.CreatedAt)</span>
+                </div>
+            </div>
+
+            @*
+                Actions
+            *@
+
+            <div class="mt-6 flex justify-end">
+                <!-- Close Button -->
+
+                <button class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition"
+                        @onclick="OnCloseClicked">
+                    Close
+                </button>
             </div>
         </div>
     </div>
 }
+
 
 @code {
     [Parameter]
