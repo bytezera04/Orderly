@@ -23,6 +23,12 @@ namespace Orderly.Server.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // get the seed password
+
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            string seedPassword = config.GetValue<string>("SeedPassword");
+
             // Seed Users
 
             var usersData = new[]
@@ -73,7 +79,7 @@ namespace Orderly.Server.Data
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await userManager.CreateAsync(user, "Test@123");
+                var result = await userManager.CreateAsync(user, seedPassword);
 
                 users.Add(user);
             }
