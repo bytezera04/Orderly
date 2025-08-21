@@ -1,6 +1,7 @@
 # 🚀 Orderly — Full-Stack Blazor WebAssembly Marketplace
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20Preview-brightgreen.svg)](https://orderlyapp.dev)  
 
 ---
 
@@ -75,6 +76,13 @@ Engage in instant communication with other users via the integrated SignalR-powe
 Browse a catalogue of publicly created products, place orders and manage them within your dashboard.
 
 ![Marketplace](docs/dashboard_showcases/marketplace.png)
+
+## 🌐 Live Demo
+🔗 [View the Demo Application](https://orderlyapp.dev)  
+
+⚠️ **Note**: This demo is provided for portfolio purposes only.  
+- Uses **seeded sample data** (not real).  
+- Some features may be limited or disabled.  
 
 ---
 
