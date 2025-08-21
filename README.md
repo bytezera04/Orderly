@@ -47,35 +47,35 @@ This portfolio project demonstrates a rich user experience with product manageme
 ### Dashboard Analytics Overview  
 Get a snapshot of your marketplace’s health with real-time analytics and key performance indicators displayed clearly for quick decision-making.
 
-![Dashboard Overview](docs/dashboard_showcases/analytics.png)
+![Dashboard Overview](docs/dashboard_showcases/analytics.png?v=2)
 
 ---
 
 ### Products Management  
 Easily create, edit, and organize your product listings with a clean and intuitive interface built for efficiency.
 
-![Dashboard Products](docs/dashboard_showcases/product_management.png)
+![Dashboard Products](docs/dashboard_showcases/product_management.png?v=2)
 
 ---
 
 ### Received Orders  
 Track and manage incoming orders seamlessly, with detailed order info to keep your marketplace running smoothly.
 
-![Dashboard Orders](docs/dashboard_showcases/order_management.png)
+![Dashboard Orders](docs/dashboard_showcases/order_management.png?v=2)
 
 ---
 
 ### Real-Time Chat  
 Engage in instant communication with other users via the integrated SignalR-powered chat system.
 
-![Dashboard Chat](docs/dashboard_showcases/chats.png)
+![Dashboard Chat](docs/dashboard_showcases/chats.png?v=2)
 
 ---
 
 ### Public Marketplace
 Browse a catalogue of publicly created products, place orders and manage them within your dashboard.
 
-![Marketplace](docs/dashboard_showcases/marketplace.png)
+![Marketplace](docs/dashboard_showcases/marketplace.png?v=2)
 
 ---
 
