@@ -77,6 +77,8 @@ Browse a catalogue of publicly created products, place orders and manage them wi
 
 ![Marketplace](docs/dashboard_showcases/marketplace.png)
 
+---
+
 ## 🌐 Live Demo
 🔗 [View the Demo Application](https://orderlyapp.dev)  
 
