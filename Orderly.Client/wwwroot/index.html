@@ -44,11 +44,21 @@
     <!-- Loading -->
 
     <div id="app">
-        <div id="loading-screen" class="loading-screen">
-            <div class="spinner-border text-primary" role="status"></div>
-            <div class="loading-text mt-3">Loading Orderly...</div>
+        <div id="loading-screen" class="flex items-center justify-center min-h-screen bg-lightbg dark:bg-darkbg">
+            <div class="flex flex-col items-center space-y-6">
+                <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-lightfg dark:text-darkfg">Loading Orderly...</h2>
+                    <p class="mt-2 text-sm text-lightfg/70 dark:text-darkfg/70 animate-pulse">
+                        Please wait while we set things up
+                    </p>
+                </div>
+
+            </div>
         </div>
     </div>
+
 
     <!-- Blazor WebAssembly runtime -->
 

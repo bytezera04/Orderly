@@ -73,22 +73,26 @@
         Page Content
     *@
 
-    @if (IsPageInDashboard)
-    {
-        <!-- Full page content -->
+    <!-- Wrap to immediately apply bg colours, prevents a flash -->
 
-        <div class="flex flex-1">
-            @Body
-        </div>
-    }
-    else
-    {
-        <!-- This is the main content -->
+    <div class="min-h-screen bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
+        @if (IsPageInDashboard)
+        {
+            <!-- Full page content -->
 
-        <main class="flex-1">
-            @Body
-        </main>
-    }
+            <div class="flex flex-1">
+                @Body
+            </div>
+        }
+        else
+        {
+            <!-- This is the main content -->
+
+            <main class="flex-1">
+                @Body
+            </main>
+        }
+    </div>
 
     @*
         Footer
