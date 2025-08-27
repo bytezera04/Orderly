@@ -25,7 +25,7 @@ This portfolio project demonstrates a rich user experience with product manageme
 
 ### Frontend
 - **Blazor WebAssembly** (.NET 8) — SPA with client-side C# and JavaScript
-- **Bootstrap 5** — Responsive, mobile-friendly UI design
+- **Tailwind** — Responsive, mobile-friendly UI design
 - **SignalR Client** — Real-time instant updates so the user never has to refresh their browser
 
 ### Backend
@@ -34,7 +34,7 @@ This portfolio project demonstrates a rich user experience with product manageme
 - **Entity Framework Core** — Code-first MySQL database access and migrations
 
 ### Database
-- **MySQL** — Relational database design and optimization
+- **MySQL Server** — Relational database design and optimization
 
 ### DevOps & Tools
 - **Git & GitHub** — Source control and version management  
