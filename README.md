@@ -25,7 +25,7 @@ This portfolio project demonstrates a rich user experience with product manageme
 
 ### Frontend
 - **Blazor WebAssembly** (.NET 8) — SPA with client-side C# and JavaScript
-- **Tailwind** — Responsive, mobile-friendly UI design
+- **Tailwind CSS** — Responsive, mobile-friendly UI design
 - **SignalR Client** — Real-time instant updates so the user never has to refresh their browser
 
 ### Backend
