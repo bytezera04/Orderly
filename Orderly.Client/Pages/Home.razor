@@ -5,6 +5,8 @@
 
 <PageTitle>Home - Orderly</PageTitle>
 
+<link rel="stylesheet" href="/css/typewriter.css" />
+
 <div class="pt-20 min-h-screen bg-lightbg dark:bg-darkbg text-lightfg dark:text-darkfg">
     @*
         Hero Banner
@@ -14,12 +16,15 @@
         <div class="max-w-7xl mx-auto px-4 py-24 flex flex-col-reverse lg:flex-row items-center lg:space-x-16">
             <!-- Text -->
 
-            <div class="flex-1 text-center lg:text-left space-y-4">
+            <div class="flex-1 text-center lg:text-left space-y-4 min-w-0">
                 <h1 class="text-4xl sm:text-5xl font-bold leading-snug">
-                    <span id="typewriter"></span>
-                    <span aria-hidden="true" class="typewriter-spacer">
-                        <!-- Use longest phrase as a placeholder -->
-                        Fast. Reliable. Modern.
+                    <span class="relative block w-[20ch]">
+                        <span id="typewriter" class="block"></span>
+
+                        <!-- Longest phrase as a placeholder -->
+                        <span aria-hidden="true" class="typewriter-spacer">
+                            Fast. Reliable. Modern.
+                        </span>
                     </span>
                 </h1>
 
@@ -114,24 +119,6 @@
 </div>
 
 <style>
-    <!-- Typewriter -->
-
-    #typewriter {
-        display: inline-block;
-        vertical-align: baseline;
-    }
-
-    .typewriter-spacer {
-        visibility: hidden;
-        position: absolute;
-        white-space: nowrap;
-        pointer-events: none;
-        user-select: none;
-        font-size: inherit;
-        font-weight: inherit;
-        line-height: inherit;
-    }
-
     <!-- Flip cards -->
 
     .perspective {
@@ -165,11 +152,15 @@
         {
             await JS.InvokeVoidAsync("initFadeIn");
 
+            // Under 1150px the typewriter does not work properly, shouldn't be used
+            // on screens under this resolution
+            const int TYPEWRITER_WIDTH_LIMIT = 1150;
+
             await JS.InvokeVoidAsync("startTyped", "#typewriter", new[] {
                 "Welcome to <span class='text-primary dark:text-primary'>Orderly</span>.",
                 "Fast. Reliable. Modern.",
                 "Your portfolio marketplace."
-            });
+            }, TYPEWRITER_WIDTH_LIMIT);
         }
     }
 

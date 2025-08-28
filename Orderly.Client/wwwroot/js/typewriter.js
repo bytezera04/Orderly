@@ -1,9 +1,10 @@
 ﻿
-window.startTyped = function (elementId, phrases) {
-    // If on mobile, use the first phrase (this is the primary
-    // phrase in the list)
+window.startTyped = function (elementId, phrases, widthLimit) {
+    // If past the width limit (used to define a point where the
+    // typewriter should not be used, such as a mobile resolution)
+    // then use the first phrase(this is the primary phrase in the list)
 
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= widthLimit) {
         const el = document.querySelector(elementId);
         if (el && phrases.length > 0) {
             el.innerHTML = phrases[0];

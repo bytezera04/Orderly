@@ -3,7 +3,7 @@
 
 @namespace Orderly.Client.Pages.Shared
 
-<div class="main-layout min-h-screen flex flex-col">
+<div class="main-layout min-h-screen flex flex-col overflow-x-hidden">
     @*
         Navbar
     *@
@@ -20,8 +20,8 @@
 
             <!-- Links -->
 
-            <div class="flex-1">
-                <div class="hidden md:flex justify-center max-w-6xl mx-auto space-x-8">
+            <div class="flex-1 min-w-0">
+                <div class="hidden md:flex justify-center w-full max-w-full md:max-w-6xl mx-auto space-x-8">
                     @foreach (Nav nav in Navs)
                     {
                         <NavLink href="@nav.Path"
